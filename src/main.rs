@@ -153,15 +153,22 @@ fn main() {
             },
             Module::Git => {
                 let mut branch = None;
-                search_for_git(&mut git, &mut git_out, "## ", |s| { branch = Some(String::from(&s[3..])); false });
+                let mut clean  = true;
+                search_for_git(&mut git, &mut git_out, "## ", |s| { branch = Some(String::from(&s[3..])); true });
+                search_for_git(&mut git, &mut git_out, " M ", |_| { clean = false; false });
 
                 if let Some(branch) = branch {
-                    segments.push(Segment::new(REPO_DIRTY_BG, REPO_DIRTY_FG, branch));
+                    let (mut bg, mut fg) = (REPO_DIRTY_BG, REPO_DIRTY_FG);
+                    if clean {
+                        bg = REPO_CLEAN_BG;
+                        fg = REPO_CLEAN_FG;
+                    }
+                    segments.push(Segment::new(bg, fg, branch));
                 }
             },
             Module::GitStage => {
                 let mut count = 0;
-                search_for_git(&mut git, &mut git_out, " M ", |_| { count += 1; true });
+                search_for_git(&mut git, &mut git_out, " M ", |_| { count += 1; false });
 
                 if count > 0 {
                     let mut string = if count == 1 { String::with_capacity(1) } else { count.to_string() };
@@ -171,7 +178,7 @@ fn main() {
             },
             Module::GitTrack => {
                 let mut count = 0;
-                search_for_git(&mut git, &mut git_out, "?? ", |_| { count += 1; true });
+                search_for_git(&mut git, &mut git_out, "?? ", |_| { count += 1; false });
 
                 if count > 0 {
                     let mut string = if count == 1 { String::with_capacity(1) } else { count.to_string() };
@@ -205,7 +212,7 @@ fn search_for_git<F>(git: &mut Option<Child>, git_out: &mut Option<String>, sear
     if let Some(ref out) = *git_out {
         for line in out.lines() {
             if line.starts_with(search) {
-                if !callback(line) {
+                if callback(line) {
                     break;
                 }
             }
