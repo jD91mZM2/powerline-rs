@@ -95,7 +95,8 @@ fn main() {
     let mut git_head = None;
     let mut git_out  = None;
 
-    if modules.iter().any(|m| *m == Module::Git) {
+    let has_git = modules.contains(&Module::Git);
+    if has_git {
         git_head = Command::new("git")
                         .args(&["rev-parse", "HEAD"])
                         .stdout(Stdio::null())
@@ -103,7 +104,7 @@ fn main() {
                         .spawn()
                         .ok();
     }
-    if modules.iter().any(|m| *m == Module::Git || *m == Module::GitStage || *m == Module::GitTrack) {
+    if has_git || modules.contains(&Module::GitStage) {
         git = Command::new("git")
                 .args(&["status", "--porcelain", "-b"])
                 .stdout(Stdio::piped())
@@ -207,12 +208,7 @@ fn main() {
                     string.push('✔');
                     segments.push(Segment::new(GIT_STAGED_BG, GIT_STAGED_FG, string));
                 }
-            },
-            Module::GitTrack => {
-                if !git_output(&mut git, &mut git_out) {
-                    continue;
-                }
-                let git_out = git_out.as_ref().unwrap();
+
                 let count = git_out.lines().filter(|line| line.starts_with("??")).count();
 
                 if count > 0 {
@@ -220,7 +216,15 @@ fn main() {
                     string.push('+');
                     segments.push(Segment::new(GIT_UNTRACKED_BG, GIT_UNTRACKED_FG, string));
                 }
-            }
+
+                let count = git_out.lines().filter(|line| line.starts_with("UU")).count();
+
+                if count > 0 {
+                    let mut string = if count == 1 { String::with_capacity(1) } else { count.to_string() };
+                    string.push('*');
+                    segments.push(Segment::new(GIT_CONFLICTED_BG, GIT_CONFLICTED_FG, string));
+                }
+            },
             Module::Root => {
                 let (mut bg, mut fg) = (CMD_PASSED_BG, CMD_PASSED_FG);
                 if error != 0 {
