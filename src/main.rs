@@ -91,17 +91,25 @@ fn main() {
                             .map(|part| part.parse::<Module>().unwrap())
                             .collect();
 
-    let mut git     = None;
-    let mut git_out = None;
-    if modules.iter().any(|m| *m == Module::Git || *m == Module::GitStage || *m == Module::GitTrack) {
-        let process = Command::new("git")
-                        .args(&["status", "--porcelain", "-b"])
-                        .stdout(Stdio::piped())
+    let mut git      = None;
+    let mut git_head = None;
+    let mut git_out  = None;
+
+    if modules.iter().any(|m| *m == Module::Git) {
+        git_head = Command::new("git")
+                        .args(&["rev-parse", "HEAD"])
+                        .stdout(Stdio::null())
                         .stderr(Stdio::null())
-                        .spawn();
-        if let Ok(process) = process {
-            git = Some(process);
-        }
+                        .spawn()
+                        .ok();
+    }
+    if modules.iter().any(|m| *m == Module::Git || *m == Module::GitStage || *m == Module::GitTrack) {
+        git = Command::new("git")
+                .args(&["status", "--porcelain", "-b"])
+                .stdout(Stdio::piped())
+                .stderr(Stdio::null())
+                .spawn()
+                .ok();
     }
 
     let mut segments = Vec::new();
@@ -152,14 +160,25 @@ fn main() {
                 }
             },
             Module::Git => {
-                let mut branch = None;
-                let mut clean  = true;
-                search_for_git(&mut git, &mut git_out, "## ", |s| { branch = Some(String::from(&s[3..])); true });
-                search_for_git(&mut git, &mut git_out, " M ", |_| { clean = false; false });
+                if !git_output(&mut git, &mut git_out) {
+                    continue;
+                }
+                let git_out = git_out.as_ref().unwrap();
+                let branch = git_out.lines()
+                                .filter(|line| line.starts_with("##"))
+                                .next()
+                                .and_then(|s| s.get(3..));
+                let dirty = git_out.chars().filter(|c| *c == '\n').count() == 1;
 
                 if let Some(branch) = branch {
+                    if let Some(mut git_head) = git_head.take() {
+                        if git_head.wait().map(|status| !status.success()).unwrap_or_default() {
+                            segments.push(Segment::new(REPO_DIRTY_BG, REPO_DIRTY_FG, "Big Bang"));
+                            continue;
+                        }
+                    }
                     let (mut bg, mut fg) = (REPO_DIRTY_BG, REPO_DIRTY_FG);
-                    if clean {
+                    if dirty {
                         bg = REPO_CLEAN_BG;
                         fg = REPO_CLEAN_FG;
                     }
@@ -167,18 +186,34 @@ fn main() {
                 }
             },
             Module::GitStage => {
-                let mut count = 0;
-                search_for_git(&mut git, &mut git_out, " M ", |_| { count += 1; false });
+                if !git_output(&mut git, &mut git_out) {
+                    continue;
+                }
+                let git_out = git_out.as_ref().unwrap();
+                let count = git_out.lines().filter(|line| {
+                    (line.chars().nth(0), line.chars().nth(2)) == (Some(' '), Some(' '))
+                }).count();
 
                 if count > 0 {
                     let mut string = if count == 1 { String::with_capacity(1) } else { count.to_string() };
                     string.push('✎');
                     segments.push(Segment::new(GIT_NOTSTAGED_BG, GIT_NOTSTAGED_FG, string));
                 }
+
+                let count = git_out.lines().filter(|line| line.get(1..3) == Some("  ")).count();
+
+                if count > 0 {
+                    let mut string = if count == 1 { String::with_capacity(1) } else { count.to_string() };
+                    string.push('✔');
+                    segments.push(Segment::new(GIT_STAGED_BG, GIT_STAGED_FG, string));
+                }
             },
             Module::GitTrack => {
-                let mut count = 0;
-                search_for_git(&mut git, &mut git_out, "?? ", |_| { count += 1; false });
+                if !git_output(&mut git, &mut git_out) {
+                    continue;
+                }
+                let git_out = git_out.as_ref().unwrap();
+                let count = git_out.lines().filter(|line| line.starts_with("??")).count();
 
                 if count > 0 {
                     let mut string = if count == 1 { String::with_capacity(1) } else { count.to_string() };
@@ -192,7 +227,7 @@ fn main() {
                     bg = CMD_FAILED_BG;
                     fg = CMD_FAILED_FG;
                 }
-                segments.push(Segment::new(bg, fg, "%"));
+                segments.push(Segment::new(bg, fg, "%%"));
             },
             _ => () // unimplemented!()
         }
@@ -202,20 +237,10 @@ fn main() {
     }
     print!(" ");
 }
-fn search_for_git<F>(git: &mut Option<Child>, git_out: &mut Option<String>, search: &str, mut callback: F)
-    where F: FnMut(&str) -> bool
-{
+fn git_output(git: &mut Option<Child>, git_out: &mut Option<String>) -> bool {
     if let Some(git) = git.take() {
         *git_out = git.wait_with_output().ok()
             .map(|out| String::from_utf8_lossy(&out.stdout).into_owned());
     }
-    if let Some(ref out) = *git_out {
-        for line in out.lines() {
-            if line.starts_with(search) {
-                if callback(line) {
-                    break;
-                }
-            }
-        }
-    }
+    git_out.is_some()
 }
