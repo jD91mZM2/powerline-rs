@@ -185,6 +185,11 @@ fn main() {
                 }
             },
             Module::Git => {
+                if !git::output(&mut git, &mut git_out) {
+                    continue;
+                }
+                let git = git_out.as_ref().unwrap();
+
                 if let Some(mut git_head) = git_head.take() {
                     git_head_fail = git_head.wait().map(|status| !status.success()).unwrap_or_default();
                 }
@@ -192,11 +197,6 @@ fn main() {
                     segments.push(Segment::new(REPO_DIRTY_BG, REPO_DIRTY_FG, "Big Bang"));
                     continue;
                 }
-
-                if !git::output(&mut git, &mut git_out) {
-                    continue;
-                }
-                let git = git_out.as_ref().unwrap();
 
                 let (mut bg, mut fg) = (REPO_DIRTY_BG, REPO_DIRTY_FG);
                 if git.staged == 0 && git.notstaged == 0 && git.untracked == 0 && git.conflict == 0 {
