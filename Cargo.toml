@@ -1,0 +1,9 @@
+[package]
+name = "powerline-shell"
+description = "Rust rewrite of the Go rewrite of powerline-shell. True rewrite-ception"
+version = "0.1.0"
+authors = ["jD91mZM2 <me@krake.one>"]
+
+[dependencies]
+clap = "2.27"
+termion = "1.5"
