@@ -61,3 +61,11 @@ impl fmt::Display for Reset {
         }
     }
 }
+
+pub fn root(shell: Shell) -> &'static str {
+    match shell {
+        Shell::Bare => "$",
+        Shell::Bash => "\\$",
+        Shell::Zsh  => "%#"
+    }
+}

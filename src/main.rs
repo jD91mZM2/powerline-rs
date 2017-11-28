@@ -253,7 +253,7 @@ fn main() {
                     bg = CMD_FAILED_BG;
                     fg = CMD_FAILED_FG;
                 }
-                segments.push(Segment::new(bg, fg, "%%"));
+                segments.push(Segment::new(bg, fg, root(shell)));
             },
             _ => () // unimplemented!()
         }
