@@ -14,6 +14,7 @@ use segment::Segment;
 use std::env;
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
+use std::collections::VecDeque;
 
 #[derive(Clone, Copy, Eq, PartialEq)]
 pub enum Shell {
@@ -89,10 +90,16 @@ fn main() {
         }
     }
 
-    let cwd_max_depth =    parse!("cwd-max-depth");
+    let cwd_max_depth    = parse!("cwd-max-depth");
     let cwd_max_dir_size = parse!("cwd-max-dir-size");
-    let error =            parse!("error");
-    let max_width =        parse!("max-width");
+    let error            = parse!("error");
+    let max_width        = parse!("max-width");
+
+    let max_width = if let Ok((width, _)) = termion::terminal_size() {
+        ((max_width as f32 / 100.0) * width as f32) as u16
+    } else {
+        0
+    };
 
     let modules_iter = matches.value_of("modules").unwrap()
                             .split(",")
@@ -137,7 +144,7 @@ fn main() {
                 .ok();
     }
 
-    let mut segments = Vec::new();
+    let mut segments = VecDeque::new();
 
     for module in modules {
         match module {
@@ -146,7 +153,7 @@ fn main() {
                 if let Some(home) = env::home_dir() {
                     let mut new_path = None;
                     if let Ok(new) = path.strip_prefix(&home) {
-                        segments.push(Segment::new(HOME_BG, HOME_FG, "~"));
+                        segments.push_back(Segment::new(HOME_BG, HOME_FG, "~"));
                         // TODO: When non-lexical lifetimes are a thing, use drop(path) here.
                         new_path = Some(new.to_path_buf());
                     }
@@ -167,7 +174,7 @@ fn main() {
 
                     if cwd_max_depth > 0 && (i != 0 || cwd_max_depth == 1) && i != length-1 && depth > cwd_max_depth {
                         if !shortened { // First time
-                            segments.push(Segment::new(PATH_BG, fg, String::from("…")));
+                            segments.push_back(Segment::new(PATH_BG, fg, String::from("…")));
                             shortened = true;
                         } else {
                             depth -= 1;
@@ -180,7 +187,7 @@ fn main() {
                             path = String::from(&path[..cwd_max_dir_size]);
                             path.push('…');
                         }
-                        segments.push(Segment::new(PATH_BG, fg, path));
+                        segments.push_back(Segment::new(PATH_BG, fg, path));
                     }
                 }
             },
@@ -194,7 +201,7 @@ fn main() {
                     git_head_fail = git_head.wait().map(|status| !status.success()).unwrap_or_default();
                 }
                 if git_head_fail {
-                    segments.push(Segment::new(REPO_DIRTY_BG, REPO_DIRTY_FG, "Big Bang"));
+                    segments.push_back(Segment::new(REPO_DIRTY_BG, REPO_DIRTY_FG, "Big Bang"));
                     continue;
                 }
 
@@ -203,7 +210,7 @@ fn main() {
                     bg = REPO_CLEAN_BG;
                     fg = REPO_CLEAN_FG;
                 }
-                segments.push(Segment::new(bg, fg, git.local.clone()));
+                segments.push_back(Segment::new(bg, fg, git.local.clone()));
             },
             Module::GitStage => {
                 if !git::output(&mut git, &mut git_out) {
@@ -214,22 +221,22 @@ fn main() {
                 if git.staged > 0 {
                     let mut string = if git.staged == 1 { String::with_capacity(1) } else { git.staged.to_string() };
                     string.push('✔');
-                    segments.push(Segment::new(GIT_STAGED_BG, GIT_STAGED_FG, string));
+                    segments.push_back(Segment::new(GIT_STAGED_BG, GIT_STAGED_FG, string));
                 }
                 if git.notstaged > 0 {
                     let mut string = if git.notstaged == 1 { String::with_capacity(1) } else { git.notstaged.to_string() };
                     string.push('✎');
-                    segments.push(Segment::new(GIT_NOTSTAGED_BG, GIT_NOTSTAGED_FG, string));
+                    segments.push_back(Segment::new(GIT_NOTSTAGED_BG, GIT_NOTSTAGED_FG, string));
                 }
                 if git.untracked > 0 {
                     let mut string = if git.untracked == 1 { String::with_capacity(1) } else { git.untracked.to_string() };
                     string.push('+');
-                    segments.push(Segment::new(GIT_UNTRACKED_BG, GIT_UNTRACKED_FG, string));
+                    segments.push_back(Segment::new(GIT_UNTRACKED_BG, GIT_UNTRACKED_FG, string));
                 }
                 if git.conflict > 0 {
                     let mut string = if git.conflict == 1 { String::with_capacity(1) } else { git.conflict.to_string() };
                     string.push('*');
-                    segments.push(Segment::new(GIT_CONFLICTED_BG, GIT_CONFLICTED_FG, string));
+                    segments.push_back(Segment::new(GIT_CONFLICTED_BG, GIT_CONFLICTED_FG, string));
                 }
             },
             Module::Root => {
@@ -238,9 +245,23 @@ fn main() {
                     bg = CMD_FAILED_BG;
                     fg = CMD_FAILED_FG;
                 }
-                segments.push(Segment::new(bg, fg, root(shell)));
+                segments.push_back(Segment::new(bg, fg, root(shell)));
             },
             _ => () // unimplemented!()
+        }
+    }
+    if max_width != 0 {
+        loop {
+            let mut total = 0;
+            for segment in &segments {
+                total += segment.len();
+                total += 1;
+            }
+
+            if total < max_width as usize {
+                break;
+            }
+            segments.pop_front();
         }
     }
     for i in 0..segments.len() {

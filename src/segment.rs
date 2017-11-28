@@ -22,4 +22,7 @@ impl Segment {
             None       => print!("{}{}{}",Fg(shell, self.bg), Reset(shell, false), Reset(shell, true))
         }
     }
+    pub fn len(&self) -> usize {
+        self.text.len() + 2
+    }
 }
