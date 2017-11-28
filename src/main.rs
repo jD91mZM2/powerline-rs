@@ -11,8 +11,8 @@ use format::*;
 use module::Module;
 use segment::Segment;
 use std::env;
-use std::process::{self, Child, Command, Stdio};
 use std::path::PathBuf;
+use std::process::{self, Child, Command, Stdio};
 
 fn main() {
     let matches = App::new(crate_name!())
@@ -124,9 +124,31 @@ fn main() {
                 }
 
                 let length = path.iter().count();
+                let mut depth  = length;
+                let mut shortened = false;
+
+                let cwd_max_depth = cwd_max_depth as usize;
+
                 for (i, path) in path.iter().enumerate() {
                     let fg = if i == length-1 { CWD_FG } else { PATH_FG };
-                    segments.push(Segment::new(PATH_BG, fg, path.to_string_lossy()));
+
+                    if cwd_max_depth > 0 && (i != 0 || cwd_max_depth == 1) && i != length-1 && depth > cwd_max_depth {
+                        if !shortened { // First time
+                            segments.push(Segment::new(PATH_BG, fg, String::from("…")));
+                            shortened = true;
+                        } else {
+                            depth -= 1;
+                        }
+                    } else {
+                        let mut path = path.to_string_lossy().into_owned();
+
+                        let cwd_max_dir_size = cwd_max_dir_size as usize;
+                        if cwd_max_dir_size > 0 && path.len() > cwd_max_dir_size {
+                            path = String::from(&path[..cwd_max_dir_size]);
+                            path.push('…');
+                        }
+                        segments.push(Segment::new(PATH_BG, fg, path));
+                    }
                 }
             },
             Module::Git => {
@@ -158,7 +180,12 @@ fn main() {
                 }
             }
             Module::Root => {
-                segments.push(Segment::new(CMD_PASSED_BG, CMD_PASSED_FG, "%"));
+                let (mut bg, mut fg) = (CMD_PASSED_BG, CMD_PASSED_FG);
+                if error != 0 {
+                    bg = CMD_FAILED_BG;
+                    fg = CMD_FAILED_FG;
+                }
+                segments.push(Segment::new(bg, fg, "%"));
             },
             _ => () // unimplemented!()
         }
