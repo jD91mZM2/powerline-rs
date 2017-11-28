@@ -1,3 +1,4 @@
+use Shell;
 use format::*;
 
 pub struct Segment {
@@ -13,12 +14,12 @@ impl Segment {
             text:  text.into(),
         }
     }
-    pub fn print(&self, next: Option<&Segment>) {
-        print!("{}{} {} ", Fg(self.fg), Bg(self.bg), self.text);
+    pub fn print(&self, next: Option<&Segment>, shell: Shell) {
+        print!("{}{} {} ", Fg(shell, self.fg), Bg(shell, self.bg), self.text);
         match next {
-            Some(next) if next.bg == self.bg => print!("{}", Fg(SEPARATOR_FG)),
-            Some(next) => print!("{}{}", Fg(self.bg), Bg(next.bg)),
-            None       => print!("{}{}{}",Fg(self.bg), Reset(false), Reset(true))
+            Some(next) if next.bg == self.bg => print!("{}", Fg(shell, SEPARATOR_FG)),
+            Some(next) => print!("{}{}", Fg(shell, self.bg), Bg(shell, next.bg)),
+            None       => print!("{}{}{}",Fg(shell, self.bg), Reset(shell, false), Reset(shell, true))
         }
     }
 }

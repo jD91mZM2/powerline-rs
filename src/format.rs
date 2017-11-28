@@ -1,3 +1,4 @@
+use Shell;
 use std::fmt;
 
 pub const SEPARATOR_FG: u8 = 244;
@@ -27,24 +28,36 @@ pub const CMD_PASSED_FG: u8 = 15;
 pub const CMD_FAILED_BG: u8 = 161;
 pub const CMD_FAILED_FG: u8 = 15;
 
-pub struct Fg(pub u8);
+pub struct Fg(pub Shell, pub u8);
 impl fmt::Display for Fg {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "\x1b[38;5;{}m", self.0)
+        match self.0 {
+            Shell::Bare => write!(f, "\x1b[38;5;{}m", self.1),
+            Shell::Bash => write!(f, "\\[\\e[38;5;{}m\\]", self.1),
+            Shell::Zsh  => write!(f, "%{{\x1b[38;5;{}m%}}", self.1)
+        }
     }
 }
 
-pub struct Bg(pub u8);
+pub struct Bg(pub Shell, pub u8);
 impl fmt::Display for Bg {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "\x1b[48;5;{}m", self.0)
+        match self.0 {
+            Shell::Bare => write!(f, "\x1b[48;5;{}m", self.1),
+            Shell::Bash => write!(f, "\\[\\e[48;5;{}m\\]", self.1),
+            Shell::Zsh  => write!(f, "%{{\x1b[48;5;{}m%}}", self.1)
+        }
     }
 }
 
-pub struct Reset(pub bool);
+pub struct Reset(pub Shell, pub bool);
 impl fmt::Display for Reset {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let reset = if self.0 { "39" } else { "49" };
-        write!(f, "\x1b[{}m", reset)
+        let reset = if self.1 { "3" } else { "4" };
+        match self.0 {
+            Shell::Bare => write!(f, "\x1b[{}9m", reset),
+            Shell::Bash => write!(f, "\\[\\e[{}9m\\]", reset),
+            Shell::Zsh  => write!(f, "%{{\x1b[{}9m%}}", reset)
+        }
     }
 }

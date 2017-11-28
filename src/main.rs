@@ -12,7 +12,14 @@ use module::Module;
 use segment::Segment;
 use std::env;
 use std::path::PathBuf;
-use std::process::{self, Child, Command, Stdio};
+use std::process::{Child, Command, Stdio};
+
+#[derive(Clone, Copy, Eq, PartialEq)]
+pub enum Shell {
+    Bare,
+    Bash,
+    Zsh
+}
 
 fn main() {
     let matches = App::new(crate_name!())
@@ -56,7 +63,7 @@ fn main() {
 (Valid modules: aws, cwd, docker, dotenv, exit, git, gitstage, gittrack, hg, host, jobs, perlbrew, perms, root, ssh, time, user, venv)")
                 .takes_value(true)
                 .value_name("string")
-                .default_value("ssh,cwd,perms,git,gitstage,gittrack,hg,jobs,exit,root")
+                .default_value("ssh,cwd,perms,git,gitstage,hg,jobs,exit,root")
         )
         .arg(
             Arg::with_name("shell")
@@ -65,7 +72,7 @@ fn main() {
                 .takes_value(true)
                 .value_name("string")
                 .possible_values(&["bare", "bash", "zsh"])
-                .default_value("bare")
+                .default_value("bash")
         )
         .get_matches();
 
@@ -86,10 +93,25 @@ fn main() {
     let error =            parse!("error");
     let max_width =        parse!("max-width");
 
-    let modules: Vec<_> = matches.value_of("modules").unwrap()
+    let modules_iter = matches.value_of("modules").unwrap()
                             .split(",")
-                            .map(|part| part.parse::<Module>().unwrap())
-                            .collect();
+                            .map(|module| module.parse::<Module>());
+    let mut modules = Vec::with_capacity(16); // just a guess
+    for module in modules_iter {
+        if module.is_err() {
+            eprintln!("Module string invalid!");
+            return;
+        }
+        modules.push(module.unwrap());
+    }
+    modules.shrink_to_fit();
+
+    let shell = match matches.value_of("shell").unwrap() {
+        "bare" => Shell::Bare,
+        "bash" => Shell::Bash,
+        "zsh"  => Shell::Zsh,
+        _ => unreachable!()
+    };
 
     let mut git      = None;
     let mut git_head = None;
@@ -237,7 +259,7 @@ fn main() {
         }
     }
     for i in 0..segments.len() {
-        segments[i].print(segments.get(i+1));
+        segments[i].print(segments.get(i+1), shell);
     }
     print!(" ");
 }
