@@ -3,6 +3,7 @@ extern crate clap;
 extern crate termion;
 
 mod format;
+mod git;
 mod module;
 mod segment;
 
@@ -12,7 +13,7 @@ use module::Module;
 use segment::Segment;
 use std::env;
 use std::path::PathBuf;
-use std::process::{Child, Command, Stdio};
+use std::process::{Command, Stdio};
 
 #[derive(Clone, Copy, Eq, PartialEq)]
 pub enum Shell {
@@ -115,6 +116,7 @@ fn main() {
 
     let mut git      = None;
     let mut git_head = None;
+    let mut git_head_fail = false;
     let mut git_out  = None;
 
     let has_git = modules.contains(&Module::Git);
@@ -128,7 +130,7 @@ fn main() {
     }
     if has_git || modules.contains(&Module::GitStage) {
         git = Command::new("git")
-                .args(&["status", "--porcelain", "-b"])
+                .args(&["status", "--porcelain", "-b", "-z"])
                 .stdout(Stdio::piped())
                 .stderr(Stdio::null())
                 .spawn()
@@ -183,66 +185,49 @@ fn main() {
                 }
             },
             Module::Git => {
-                if !git_output(&mut git, &mut git_out) {
+                if let Some(mut git_head) = git_head.take() {
+                    git_head_fail = git_head.wait().map(|status| !status.success()).unwrap_or_default();
+                }
+                if git_head_fail {
+                    segments.push(Segment::new(REPO_DIRTY_BG, REPO_DIRTY_FG, "Big Bang"));
                     continue;
                 }
-                let git_out = git_out.as_ref().unwrap();
-                let branch = git_out.lines()
-                                .filter(|line| line.starts_with("##"))
-                                .next()
-                                .and_then(|s| s.get(3..));
-                let dirty = git_out.chars().filter(|c| *c == '\n').count() == 1;
 
-                if let Some(branch) = branch {
-                    if let Some(mut git_head) = git_head.take() {
-                        if git_head.wait().map(|status| !status.success()).unwrap_or_default() {
-                            segments.push(Segment::new(REPO_DIRTY_BG, REPO_DIRTY_FG, "Big Bang"));
-                            continue;
-                        }
-                    }
-                    let (mut bg, mut fg) = (REPO_DIRTY_BG, REPO_DIRTY_FG);
-                    if dirty {
-                        bg = REPO_CLEAN_BG;
-                        fg = REPO_CLEAN_FG;
-                    }
-                    segments.push(Segment::new(bg, fg, branch));
+                if !git::output(&mut git, &mut git_out) {
+                    continue;
                 }
+                let git = git_out.as_ref().unwrap();
+
+                let (mut bg, mut fg) = (REPO_DIRTY_BG, REPO_DIRTY_FG);
+                if git.staged == 0 && git.notstaged == 0 && git.untracked == 0 && git.conflict == 0 {
+                    bg = REPO_CLEAN_BG;
+                    fg = REPO_CLEAN_FG;
+                }
+                segments.push(Segment::new(bg, fg, git.local.clone()));
             },
             Module::GitStage => {
-                if !git_output(&mut git, &mut git_out) {
+                if !git::output(&mut git, &mut git_out) {
                     continue;
                 }
-                let git_out = git_out.as_ref().unwrap();
-                let count = git_out.lines().filter(|line| {
-                    (line.chars().nth(0), line.chars().nth(2)) == (Some(' '), Some(' '))
-                }).count();
+                let git = git_out.as_ref().unwrap();
 
-                if count > 0 {
-                    let mut string = if count == 1 { String::with_capacity(1) } else { count.to_string() };
-                    string.push('✎');
-                    segments.push(Segment::new(GIT_NOTSTAGED_BG, GIT_NOTSTAGED_FG, string));
-                }
-
-                let count = git_out.lines().filter(|line| line.get(1..3) == Some("  ")).count();
-
-                if count > 0 {
-                    let mut string = if count == 1 { String::with_capacity(1) } else { count.to_string() };
+                if git.staged > 0 {
+                    let mut string = if git.staged == 1 { String::with_capacity(1) } else { git.staged.to_string() };
                     string.push('✔');
                     segments.push(Segment::new(GIT_STAGED_BG, GIT_STAGED_FG, string));
                 }
-
-                let count = git_out.lines().filter(|line| line.starts_with("??")).count();
-
-                if count > 0 {
-                    let mut string = if count == 1 { String::with_capacity(1) } else { count.to_string() };
+                if git.notstaged > 0 {
+                    let mut string = if git.notstaged == 1 { String::with_capacity(1) } else { git.notstaged.to_string() };
+                    string.push('✎');
+                    segments.push(Segment::new(GIT_NOTSTAGED_BG, GIT_NOTSTAGED_FG, string));
+                }
+                if git.untracked > 0 {
+                    let mut string = if git.untracked == 1 { String::with_capacity(1) } else { git.untracked.to_string() };
                     string.push('+');
                     segments.push(Segment::new(GIT_UNTRACKED_BG, GIT_UNTRACKED_FG, string));
                 }
-
-                let count = git_out.lines().filter(|line| line.starts_with("UU")).count();
-
-                if count > 0 {
-                    let mut string = if count == 1 { String::with_capacity(1) } else { count.to_string() };
+                if git.conflict > 0 {
+                    let mut string = if git.conflict == 1 { String::with_capacity(1) } else { git.conflict.to_string() };
                     string.push('*');
                     segments.push(Segment::new(GIT_CONFLICTED_BG, GIT_CONFLICTED_FG, string));
                 }
@@ -262,11 +247,4 @@ fn main() {
         segments[i].print(segments.get(i+1), shell);
     }
     print!(" ");
-}
-fn git_output(git: &mut Option<Child>, git_out: &mut Option<String>) -> bool {
-    if let Some(git) = git.take() {
-        *git_out = git.wait_with_output().ok()
-            .map(|out| String::from_utf8_lossy(&out.stdout).into_owned());
-    }
-    git_out.is_some()
 }
