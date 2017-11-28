@@ -1,20 +1,20 @@
 #[macro_use]
 extern crate clap;
+extern crate git2;
 extern crate termion;
 
 mod format;
-mod git;
 mod module;
 mod segment;
 
 use clap::{App, Arg};
 use format::*;
+use git2::{BranchType, Repository, StatusOptions, StatusShow};
 use module::Module;
 use segment::Segment;
+use std::collections::VecDeque;
 use std::env;
 use std::path::PathBuf;
-use std::process::{Command, Stdio};
-use std::collections::VecDeque;
 
 #[derive(Clone, Copy, Eq, PartialEq)]
 pub enum Shell {
@@ -121,28 +121,9 @@ fn main() {
         _ => unreachable!()
     };
 
-    let mut git      = None;
-    let mut git_head = None;
-    let mut git_head_fail = false;
-    let mut git_out  = None;
-
-    let has_git = modules.contains(&Module::Git);
-    if has_git {
-        git_head = Command::new("git")
-                        .args(&["rev-parse", "HEAD"])
-                        .stdout(Stdio::null())
-                        .stderr(Stdio::null())
-                        .spawn()
-                        .ok();
-    }
-    if has_git || modules.contains(&Module::GitStage) {
-        git = Command::new("git")
-                .args(&["status", "--porcelain", "-b", "-z"])
-                .stdout(Stdio::piped())
-                .stderr(Stdio::null())
-                .spawn()
-                .ok();
-    }
+    let git = if modules.iter().any(|module| *module == Module::Git || *module == Module::GitStage) {
+        Repository::discover(".").ok()
+    } else { None };
 
     let mut segments = VecDeque::new();
 
@@ -192,49 +173,113 @@ fn main() {
                 }
             },
             Module::Git => {
-                if !git::output(&mut git, &mut git_out) {
+                if git.is_none() {
                     continue;
                 }
-                let git = git_out.as_ref().unwrap();
+                let git = git.as_ref().unwrap();
 
-                if let Some(mut git_head) = git_head.take() {
-                    git_head_fail = git_head.wait().map(|status| !status.success()).unwrap_or_default();
+                let branches = git.branches(Some(BranchType::Local));
+                if branches.is_err() {
+                    continue;
                 }
-                if git_head_fail {
+
+                let mut current = None;
+
+                for branch in branches.unwrap() {
+                    if let Ok((branch, _)) = branch {
+                        if branch.is_head() {
+                            if let Ok(name) = branch.name() {
+                                if let Some(name) = name {
+                                    current = Some(name.to_string());
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if current.is_none() {
                     segments.push_back(Segment::new(REPO_DIRTY_BG, REPO_DIRTY_FG, "Big Bang"));
                     continue;
                 }
 
+                let statuses = git.statuses(Some(
+                    StatusOptions::new()
+                        .show(StatusShow::IndexAndWorkdir)
+                        .include_untracked(true)
+                ));
+                if statuses.is_err() {
+                    continue;
+                }
+
                 let (mut bg, mut fg) = (REPO_DIRTY_BG, REPO_DIRTY_FG);
-                if git.staged == 0 && git.notstaged == 0 && git.untracked == 0 && git.conflict == 0 {
+                if statuses.unwrap().len() == 0 {
                     bg = REPO_CLEAN_BG;
                     fg = REPO_CLEAN_FG;
                 }
-                segments.push_back(Segment::new(bg, fg, git.local.clone()));
+                segments.push_back(Segment::new(bg, fg, current.unwrap()));
             },
             Module::GitStage => {
-                if !git::output(&mut git, &mut git_out) {
+                if git.is_none() {
                     continue;
                 }
-                let git = git_out.as_ref().unwrap();
+                let git = git.as_ref().unwrap();
 
-                if git.staged > 0 {
-                    let mut string = if git.staged == 1 { String::with_capacity(1) } else { git.staged.to_string() };
+                let statuses = git.statuses(Some(
+                    StatusOptions::new()
+                        .show(StatusShow::IndexAndWorkdir)
+                        .include_untracked(true)
+                        .renames_from_rewrites(true)
+                        .renames_head_to_index(true)
+                ));
+                if statuses.is_err() {
+                    continue;
+                }
+
+                let mut staged = 0;
+                let mut notstaged = 0;
+                let mut untracked = 0;
+                let mut conflicted = 0;
+
+                for status in statuses.unwrap().iter() {
+                    let status = status.status();
+                    if status.contains(git2::STATUS_INDEX_NEW)
+                        || status.contains(git2::STATUS_INDEX_MODIFIED)
+                        || status.contains(git2::STATUS_INDEX_TYPECHANGE)
+                        || status.contains(git2::STATUS_INDEX_RENAMED)
+                        || status.contains(git2::STATUS_INDEX_DELETED) {
+                        staged += 1;
+                    }
+                    if status.contains(git2::STATUS_WT_MODIFIED)
+                        || status.contains(git2::STATUS_WT_TYPECHANGE)
+                        || status.contains(git2::STATUS_WT_DELETED) {
+                        notstaged += 1;
+                    }
+                    if status.contains(git2::STATUS_WT_NEW) {
+                        untracked += 1;
+                    }
+                    if status.contains(git2::STATUS_CONFLICTED) {
+                        conflicted += 1;
+                    }
+                }
+
+                if staged > 0 {
+                    let mut string = if staged == 1 { String::with_capacity(1) } else { staged.to_string() };
                     string.push('✔');
                     segments.push_back(Segment::new(GIT_STAGED_BG, GIT_STAGED_FG, string));
                 }
-                if git.notstaged > 0 {
-                    let mut string = if git.notstaged == 1 { String::with_capacity(1) } else { git.notstaged.to_string() };
+                if notstaged > 0 {
+                    let mut string = if notstaged == 1 { String::with_capacity(1) } else { notstaged.to_string() };
                     string.push('✎');
                     segments.push_back(Segment::new(GIT_NOTSTAGED_BG, GIT_NOTSTAGED_FG, string));
                 }
-                if git.untracked > 0 {
-                    let mut string = if git.untracked == 1 { String::with_capacity(1) } else { git.untracked.to_string() };
+                if untracked > 0 {
+                    let mut string = if untracked == 1 { String::with_capacity(1) } else { untracked.to_string() };
                     string.push('+');
                     segments.push_back(Segment::new(GIT_UNTRACKED_BG, GIT_UNTRACKED_FG, string));
                 }
-                if git.conflict > 0 {
-                    let mut string = if git.conflict == 1 { String::with_capacity(1) } else { git.conflict.to_string() };
+                if conflicted > 0 {
+                    let mut string = if conflicted == 1 { String::with_capacity(1) } else { conflicted.to_string() };
                     string.push('*');
                     segments.push_back(Segment::new(GIT_CONFLICTED_BG, GIT_CONFLICTED_FG, string));
                 }
