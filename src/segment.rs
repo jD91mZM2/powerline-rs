@@ -3,7 +3,7 @@ use format::*;
 pub struct Segment {
     bg: u8,
     fg: u8,
-    text:  String
+    text: String
 }
 impl Segment {
     pub fn new<S: Into<String>>(bg: u8, fg: u8, text: S) -> Self {
@@ -16,7 +16,7 @@ impl Segment {
     pub fn print(&self, next: Option<&Segment>) {
         print!("{}{} {} ", Fg(self.fg), Bg(self.bg), self.text);
         match next {
-            Some(next) if next.bg == self.bg => print!(""),
+            Some(next) if next.bg == self.bg => print!("{}", Fg(SEPARATOR_FG)),
             Some(next) => print!("{}{}", Fg(self.bg), Bg(next.bg)),
             None       => print!("{}{}{}",Fg(self.bg), Reset(false), Reset(true))
         }
