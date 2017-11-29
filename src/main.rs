@@ -40,7 +40,7 @@ fn main() {
                 .help("Maximum number of letters displayed for each directory in the path. Setting this to 0 means unlimited.")
                 .takes_value(true)
                 .value_name("int")
-                .default_value("0")
+                .default_value("15")
         )
         .arg(
             Arg::with_name("error")
