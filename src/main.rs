@@ -123,6 +123,9 @@ fn main() {
     let cwd_max_dir_size = parse!("cwd-max-dir-size");
     let error            = parse!("error");
 
+    #[cfg(feature = "flame")]
+    flame::start("parse theme");
+
     let theme = if let Some(file) = matches.value_of("theme") {
         if let Ok(theme) = theme::load(file) {
             theme
@@ -131,6 +134,9 @@ fn main() {
             theme::DEFAULT
         }
     } else { theme::DEFAULT };
+
+    #[cfg(feature = "flame")]
+    flame::end("parse theme");
 
     #[cfg(feature = "flame")]
     flame::start("parse modules");
