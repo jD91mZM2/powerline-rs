@@ -14,14 +14,19 @@ pub fn segment_git(segments: &mut VecDeque<Segment>, git: &Option<Repository>) {
         return;
     }
 
-    let mut current = None;
+    let mut branch_name = None;
+    let mut local    = None;
+    let mut upstream = None;
 
     for branch in branches.unwrap() {
         if let Ok((branch, _)) = branch {
             if branch.is_head() {
+                local    = branch.get().target();
+                upstream = branch.upstream().ok().and_then(|b| b.get().target());
+
                 if let Ok(name) = branch.name() {
                     if let Some(name) = name {
-                        current = Some(name.to_string());
+                        branch_name = Some(name.to_string());
                         break;
                     }
                 }
@@ -29,11 +34,11 @@ pub fn segment_git(segments: &mut VecDeque<Segment>, git: &Option<Repository>) {
         }
     }
 
-    if current.is_none() {
+    if branch_name.is_none() {
         // Could be a detached head
         if let Ok(head) = git.head() {
             if let Some(target) = head.target() {
-                current = git.find_object(target, Some(ObjectType::Any))
+                branch_name = git.find_object(target, Some(ObjectType::Any))
                             .ok()
                             .and_then(|obj| obj.short_id().ok())
                             .and_then(|buf| buf.as_str()
@@ -59,7 +64,25 @@ pub fn segment_git(segments: &mut VecDeque<Segment>, git: &Option<Repository>) {
         bg = REPO_CLEAN_BG;
         fg = REPO_CLEAN_FG;
     }
-    segments.push_back(Segment::new(bg, fg, current.unwrap()));
+    segments.push_back(Segment::new(bg, fg, branch_name.unwrap()));
+
+    if let Some(local) = local {
+        if let Some(upstream) = upstream {
+            if let Ok((ahead, behind)) = git.graph_ahead_behind(local, upstream) {
+                if ahead > 0 {
+                    let mut ahead = if ahead == 1 { String::new() } else { ahead.to_string() };
+                    ahead.push('⬆');
+                    segments.push_back(Segment::new(GIT_AHEAD_BG, GIT_AHEAD_FG, ahead));
+                }
+
+                if behind > 0 {
+                    let mut behind = if behind == 1 { String::new() } else { behind.to_string() };
+                    behind.push('⬇');
+                    segments.push_back(Segment::new(GIT_BEHIND_BG, GIT_BEHIND_FG, behind));
+                }
+            }
+        }
+    }
 }
 
 pub fn segment_gitstage(segments: &mut VecDeque<Segment>, git: &Option<Repository>) {
