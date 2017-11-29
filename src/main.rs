@@ -6,15 +6,14 @@ extern crate termion;
 mod format;
 mod module;
 mod segment;
+mod segments;
 
 use clap::{App, Arg};
 use format::*;
-use git2::{BranchType, ObjectType, Repository, StatusOptions, StatusShow};
+use git2::Repository;
 use module::Module;
 use segment::Segment;
 use std::collections::VecDeque;
-use std::env;
-use std::path::PathBuf;
 
 #[derive(Clone, Copy, Eq, PartialEq)]
 pub enum Shell {
@@ -129,172 +128,9 @@ fn main() {
 
     for module in modules {
         match module {
-            Module::Cwd => {
-                let mut path = env::current_dir().unwrap_or_else(|_| PathBuf::from("error"));
-                if let Some(home) = env::home_dir() {
-                    let mut new_path = None;
-                    if let Ok(new) = path.strip_prefix(&home) {
-                        segments.push_back(Segment::new(HOME_BG, HOME_FG, "~"));
-                        // TODO: When non-lexical lifetimes are a thing, use drop(path) here.
-                        new_path = Some(new.to_path_buf());
-                    }
-                    // Bypass borrow checker kek
-                    if let Some(new) = new_path {
-                        path = new;
-                    }
-                }
-
-                let length = path.iter().count();
-                let mut depth  = length;
-                let mut shortened = false;
-
-                let cwd_max_depth = cwd_max_depth as usize;
-
-                for (i, path) in path.iter().enumerate() {
-                    let fg = if i == length-1 { CWD_FG } else { PATH_FG };
-
-                    if cwd_max_depth > 0 && (i != 0 || cwd_max_depth == 1) && i != length-1 && depth > cwd_max_depth {
-                        if !shortened { // First time
-                            segments.push_back(Segment::new(PATH_BG, fg, String::from("…")));
-                            shortened = true;
-                        } else {
-                            depth -= 1;
-                        }
-                    } else {
-                        let mut path = path.to_string_lossy().into_owned();
-
-                        let cwd_max_dir_size = cwd_max_dir_size as usize;
-                        if cwd_max_dir_size > 0 && path.len() > cwd_max_dir_size {
-                            path = String::from(&path[..cwd_max_dir_size]);
-                            path.push('…');
-                        }
-                        segments.push_back(Segment::new(PATH_BG, fg, path));
-                    }
-                }
-            },
-            Module::Git => {
-                if git.is_none() {
-                    continue;
-                }
-                let git = git.as_ref().unwrap();
-
-                let branches = git.branches(Some(BranchType::Local));
-                if branches.is_err() {
-                    continue;
-                }
-
-                let mut current = None;
-
-                for branch in branches.unwrap() {
-                    if let Ok((branch, _)) = branch {
-                        if branch.is_head() {
-                            if let Ok(name) = branch.name() {
-                                if let Some(name) = name {
-                                    current = Some(name.to_string());
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }
-
-                if current.is_none() {
-                    // Could be a detached head
-                    if let Ok(head) = git.head() {
-                        if let Some(target) = head.target() {
-                            current = git.find_object(target, Some(ObjectType::Any))
-                                        .ok()
-                                        .and_then(|obj| obj.short_id().ok())
-                                        .and_then(|buf| buf.as_str()
-                                                            .map(|s| s.to_string()))
-                        }
-                    } else {
-                        segments.push_back(Segment::new(REPO_DIRTY_BG, REPO_DIRTY_FG, "Big Bang"));
-                        continue;
-                    }
-                }
-
-                let statuses = git.statuses(Some(
-                    StatusOptions::new()
-                        .show(StatusShow::IndexAndWorkdir)
-                        .include_untracked(true)
-                ));
-                if statuses.is_err() {
-                    continue;
-                }
-
-                let (mut bg, mut fg) = (REPO_DIRTY_BG, REPO_DIRTY_FG);
-                if statuses.unwrap().len() == 0 {
-                    bg = REPO_CLEAN_BG;
-                    fg = REPO_CLEAN_FG;
-                }
-                segments.push_back(Segment::new(bg, fg, current.unwrap()));
-            },
-            Module::GitStage => {
-                if git.is_none() {
-                    continue;
-                }
-                let git = git.as_ref().unwrap();
-
-                let statuses = git.statuses(Some(
-                    StatusOptions::new()
-                        .show(StatusShow::IndexAndWorkdir)
-                        .include_untracked(true)
-                        .renames_from_rewrites(true)
-                        .renames_head_to_index(true)
-                ));
-                if statuses.is_err() {
-                    continue;
-                }
-
-                let mut staged = 0;
-                let mut notstaged = 0;
-                let mut untracked = 0;
-                let mut conflicted = 0;
-
-                for status in statuses.unwrap().iter() {
-                    let status = status.status();
-                    if status.contains(git2::STATUS_INDEX_NEW)
-                        || status.contains(git2::STATUS_INDEX_MODIFIED)
-                        || status.contains(git2::STATUS_INDEX_TYPECHANGE)
-                        || status.contains(git2::STATUS_INDEX_RENAMED)
-                        || status.contains(git2::STATUS_INDEX_DELETED) {
-                        staged += 1;
-                    }
-                    if status.contains(git2::STATUS_WT_MODIFIED)
-                        || status.contains(git2::STATUS_WT_TYPECHANGE)
-                        || status.contains(git2::STATUS_WT_DELETED) {
-                        notstaged += 1;
-                    }
-                    if status.contains(git2::STATUS_WT_NEW) {
-                        untracked += 1;
-                    }
-                    if status.contains(git2::STATUS_CONFLICTED) {
-                        conflicted += 1;
-                    }
-                }
-
-                if staged > 0 {
-                    let mut string = if staged == 1 { String::with_capacity(1) } else { staged.to_string() };
-                    string.push('✔');
-                    segments.push_back(Segment::new(GIT_STAGED_BG, GIT_STAGED_FG, string));
-                }
-                if notstaged > 0 {
-                    let mut string = if notstaged == 1 { String::with_capacity(1) } else { notstaged.to_string() };
-                    string.push('✎');
-                    segments.push_back(Segment::new(GIT_NOTSTAGED_BG, GIT_NOTSTAGED_FG, string));
-                }
-                if untracked > 0 {
-                    let mut string = if untracked == 1 { String::with_capacity(1) } else { untracked.to_string() };
-                    string.push('+');
-                    segments.push_back(Segment::new(GIT_UNTRACKED_BG, GIT_UNTRACKED_FG, string));
-                }
-                if conflicted > 0 {
-                    let mut string = if conflicted == 1 { String::with_capacity(1) } else { conflicted.to_string() };
-                    string.push('*');
-                    segments.push_back(Segment::new(GIT_CONFLICTED_BG, GIT_CONFLICTED_FG, string));
-                }
-            },
+            Module::Cwd => segments::segment_cwd(&mut segments, cwd_max_depth, cwd_max_dir_size),
+            Module::Git => segments::segment_git(&mut segments, &git),
+            Module::GitStage => segments::segment_gitstage(&mut segments, &git),
             Module::Root => {
                 let (mut bg, mut fg) = (CMD_PASSED_BG, CMD_PASSED_FG);
                 if error != 0 {
