@@ -5,5 +5,5 @@ version = "0.1.0"
 authors = ["jD91mZM2 <me@krake.one>"]
 
 [dependencies]
-clap    = "2.27"
-git2    = "0.6"
+clap = "2.27"
+git2 = "0.6"

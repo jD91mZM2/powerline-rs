@@ -5,15 +5,32 @@ pub const SEPARATOR_FG: u8 = 244;
 
 pub const HOME_BG: u8 = 31;
 pub const HOME_FG: u8 = 15;
-
 pub const PATH_BG: u8 = 237;
 pub const PATH_FG: u8 = 250;
 pub const CWD_FG:  u8 = 254;
 
-pub const REPO_CLEAN_BG: u8 = 148;
-pub const REPO_CLEAN_FG: u8 = 0;
-pub const REPO_DIRTY_BG: u8 = 161;
-pub const REPO_DIRTY_FG: u8 = 15;
+pub const USERNAME_BG: u8 = 240;
+pub const USERNAME_FG: u8 = 250;
+pub const USERNAME_ROOT_BG: u8 = 124;
+pub const HOSTNAME_BG: u8 = 238;
+pub const HOSTNAME_FG: u8 = 250;
+
+pub const JOBS_BG: u8 = 238;
+pub const JOBS_FG: u8 = 39;
+
+pub const TIME_BG: u8 = 238;
+pub const TIME_FG: u8 = 250;
+
+pub const SSH_BG: u8 = 166;
+pub const SSH_FG: u8 = 254;
+
+pub const RO_BG: u8 = 124;
+pub const RO_FG: u8 = 254;
+
+pub const GIT_CLEAN_BG: u8 = 148;
+pub const GIT_CLEAN_FG: u8 = 0;
+pub const GIT_DIRTY_BG: u8 = 161;
+pub const GIT_DIRTY_FG: u8 = 15;
 pub const GIT_AHEAD_BG:  u8 = 240;
 pub const GIT_AHEAD_FG:  u8 = 250;
 pub const GIT_BEHIND_BG: u8 = 240;

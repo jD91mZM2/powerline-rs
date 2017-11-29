@@ -13,12 +13,22 @@ use git2::Repository;
 use module::Module;
 use segment::Segment;
 use std::collections::VecDeque;
+use std::env;
+use std::ffi::CString;
+use std::os::raw::*;
+use std::time::UNIX_EPOCH;
 
 #[derive(Clone, Copy, Eq, PartialEq)]
 pub enum Shell {
     Bare,
     Bash,
     Zsh
+}
+
+#[cfg(unix)]
+extern "C" {
+    fn access(pathname: *const c_char, mode: c_int) -> c_int;
+    fn getuid() -> c_int;
 }
 
 fn main() {
@@ -60,10 +70,10 @@ fn main() {
             Arg::with_name("modules")
                 .long("modules")
                 .long_help("The list of modules to load, separated by ','\n\
-(Valid modules: aws, cwd, docker, dotenv, exit, git, gitstage, gittrack, hg, host, jobs, perlbrew, perms, root, ssh, time, user, venv)")
+                            (Valid modules: cwd, git, gitstage, host, jobs, perms, root, ssh, time, user)")
                 .takes_value(true)
                 .value_name("string")
-                .default_value("ssh,cwd,perms,git,gitstage,hg,jobs,exit,root")
+                .default_value("ssh,cwd,perms,git,gitstage,time,root")
         )
         .arg(
             Arg::with_name("shell")
@@ -123,6 +133,92 @@ fn main() {
             Module::Cwd => segments::segment_cwd(&mut segments, cwd_max_depth, cwd_max_dir_size),
             Module::Git => segments::segment_git(&mut segments, &git),
             Module::GitStage => segments::segment_gitstage(&mut segments, &git),
+            Module::Host => {
+                let (bg, fg) = (HOSTNAME_BG, HOSTNAME_FG);
+
+                if shell == Shell::Bare {
+                    segments.push_back(Segment::new(bg, fg, env::var("HOSTNAME")
+                                                                .unwrap_or_else(|_| String::from("error"))));
+                    continue;
+                }
+                segments.push_back(Segment::new(bg, fg, match shell {
+                    Shell::Bare => unreachable!(),
+                    Shell::Bash => "\\h",
+                    Shell::Zsh  => "%m"
+                }).dont_escape());
+            },
+            Module::Jobs => {
+                if shell == Shell::Bare { continue; }
+                segments.push_back(Segment::new(JOBS_BG, JOBS_FG, match shell {
+                    Shell::Bare => unreachable!(),
+                    Shell::Bash => "\\j",
+                    Shell::Zsh  => "%j"
+                }).dont_escape());
+            },
+            Module::Perms => {
+                #[cfg(unix)]
+                {
+                    let path = CString::new(".").unwrap();
+                    if unsafe { access(path.as_ptr(), 0x2) } != 0 {
+                        segments.push_back(Segment::new(RO_BG, RO_FG, ""));
+                    }
+                }
+            },
+            Module::Ssh => {
+                if env::var("SSH_CLIENT").is_ok() {
+                    segments.push_back(Segment::new(SSH_BG, SSH_FG, ""));
+                }
+            },
+            Module::Time => {
+                let (bg, fg) = (TIME_BG, TIME_FG);
+                if shell == Shell::Bare {
+                    if let Ok(duration) = UNIX_EPOCH.elapsed() {
+                        let secs = duration.as_secs();
+                        let mut hours = (secs / 60 / 60) % 24;
+                        let mins = (secs / 60) % 60;
+
+                        println!("{}", hours);
+
+                        let ampm = if hours > 12 {
+                            hours -= 12;
+                            "PM"
+                        } else { "AM" };
+
+                        segments.push_back(Segment::new(bg, fg, format!("{:02}:{:02} {}", hours, mins, ampm)));
+                    }
+                    continue;
+                }
+                segments.push_back(Segment::new(bg, fg, match shell {
+                    Shell::Bare => unreachable!(),
+                    Shell::Bash => "\\@",
+                    Shell::Zsh  => "%@"
+                }).dont_escape())
+            },
+            Module::User => {
+                let (mut bg, fg) = (USERNAME_BG, USERNAME_FG);
+
+                #[cfg(unix)]
+                {
+                    if unsafe { getuid() } == 0 {
+                        bg = USERNAME_ROOT_BG;
+                    }
+                }
+
+                if shell == Shell::Bare {
+                    // Yeah the optimal approach wouldn't be to use environment variables
+                    // but then again it would be a lot more code (even if from a library),
+                    // therefore *probably* slower.
+                    // But then again I don't know.
+                    segments.push_back(Segment::new(bg, fg,
+                        env::var("USER").unwrap_or_else(|_| String::from("error"))));
+                    continue;
+                }
+                segments.push_back(Segment::new(bg, fg, match shell {
+                    Shell::Bare => unreachable!(),
+                    Shell::Bash => "\\u",
+                    Shell::Zsh  => "%n"
+                }).dont_escape());
+            },
             Module::Root => {
                 let (mut bg, mut fg) = (CMD_PASSED_BG, CMD_PASSED_FG);
                 if error != 0 {
@@ -130,8 +226,7 @@ fn main() {
                     fg = CMD_FAILED_FG;
                 }
                 segments.push_back(Segment::new(bg, fg, root(shell)).dont_escape());
-            },
-            _ => () // unimplemented!()
+            }
         }
     }
     for i in 0..segments.len() {

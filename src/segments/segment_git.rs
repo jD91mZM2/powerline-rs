@@ -45,7 +45,7 @@ pub fn segment_git(segments: &mut VecDeque<Segment>, git: &Option<Repository>) {
                                                 .map(|s| s.to_string()))
             }
         } else {
-            segments.push_back(Segment::new(REPO_DIRTY_BG, REPO_DIRTY_FG, "Big Bang"));
+            segments.push_back(Segment::new(GIT_DIRTY_BG, GIT_DIRTY_FG, "Big Bang"));
             return;
         }
     }
@@ -59,10 +59,10 @@ pub fn segment_git(segments: &mut VecDeque<Segment>, git: &Option<Repository>) {
         return;
     }
 
-    let (mut bg, mut fg) = (REPO_DIRTY_BG, REPO_DIRTY_FG);
+    let (mut bg, mut fg) = (GIT_DIRTY_BG, GIT_DIRTY_FG);
     if statuses.unwrap().len() == 0 {
-        bg = REPO_CLEAN_BG;
-        fg = REPO_CLEAN_FG;
+        bg = GIT_CLEAN_BG;
+        fg = GIT_CLEAN_FG;
     }
     segments.push_back(Segment::new(bg, fg, branch_name.unwrap()));
 
