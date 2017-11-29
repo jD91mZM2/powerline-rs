@@ -9,6 +9,7 @@ mod format;
 mod module;
 mod segment;
 mod segments;
+mod theme;
 
 use clap::{App, Arg};
 use format::*;
@@ -114,6 +115,8 @@ fn main() {
     let cwd_max_dir_size = parse!("cwd-max-dir-size");
     let error            = parse!("error");
 
+    let theme = theme::DEFAULT;
+
     #[cfg(feature = "flame")]
     flame::start("parse modules");
 
@@ -161,11 +164,11 @@ fn main() {
 
     for module in modules {
         match module {
-            Module::Cwd => segments::segment_cwd(&mut segments, cwd_max_depth, cwd_max_dir_size),
-            Module::Git => { #[cfg(feature = "git2")] segments::segment_git(&mut segments, &git) },
-            Module::GitStage => { #[cfg(feature = "git2")] segments::segment_gitstage(&mut segments, &git) },
+            Module::Cwd => segments::segment_cwd(&mut segments, &theme, cwd_max_depth, cwd_max_dir_size),
+            Module::Git => { #[cfg(feature = "git2")] segments::segment_git(&mut segments, &theme, &git) },
+            Module::GitStage => { #[cfg(feature = "git2")] segments::segment_gitstage(&mut segments, &theme, &git) },
             Module::Host => {
-                let (bg, fg) = (HOSTNAME_BG, HOSTNAME_FG);
+                let (bg, fg) = (theme.hostname_bg, theme.hostname_fg);
 
                 if shell == Shell::Bare {
                     segments.push(Segment::new(bg, fg, env::var("HOSTNAME")
@@ -180,7 +183,7 @@ fn main() {
             },
             Module::Jobs => {
                 if shell == Shell::Bare { continue; }
-                segments.push(Segment::new(JOBS_BG, JOBS_FG, match shell {
+                segments.push(Segment::new(theme.jobs_bg, theme.jobs_fg, match shell {
                     Shell::Bare => unreachable!(),
                     Shell::Bash => "\\j",
                     Shell::Zsh  => "%j"
@@ -191,17 +194,17 @@ fn main() {
                 {
                     let path = CString::new(".").unwrap();
                     if unsafe { access(path.as_ptr(), 0x2) } != 0 {
-                        segments.push(Segment::new(RO_BG, RO_FG, ""));
+                        segments.push(Segment::new(theme.ro_bg, theme.ro_fg, ""));
                     }
                 }
             },
             Module::Ssh => {
                 if env::var("SSH_CLIENT").is_ok() {
-                    segments.push(Segment::new(SSH_BG, SSH_FG, ""));
+                    segments.push(Segment::new(theme.ssh_bg, theme.ssh_fg, ""));
                 }
             },
             Module::Time => {
-                let (bg, fg) = (TIME_BG, TIME_FG);
+                let (bg, fg) = (theme.time_bg, theme.time_fg);
                 if shell == Shell::Bare {
                     if let Ok(duration) = UNIX_EPOCH.elapsed() {
                         let secs = duration.as_secs();
@@ -226,12 +229,12 @@ fn main() {
                 }).dont_escape())
             },
             Module::User => {
-                let (mut bg, fg) = (USERNAME_BG, USERNAME_FG);
+                let (mut bg, fg) = (theme.username_bg, theme.username_fg);
 
                 #[cfg(unix)]
                 {
                     if unsafe { getuid() } == 0 {
-                        bg = USERNAME_ROOT_BG;
+                        bg = theme.username_root_bg;
                     }
                 }
 
@@ -251,10 +254,10 @@ fn main() {
                 }).dont_escape());
             },
             Module::Root => {
-                let (mut bg, mut fg) = (CMD_PASSED_BG, CMD_PASSED_FG);
+                let (mut bg, mut fg) = (theme.cmd_passed_bg, theme.cmd_passed_fg);
                 if error != 0 {
-                    bg = CMD_FAILED_BG;
-                    fg = CMD_FAILED_FG;
+                    bg = theme.cmd_failed_bg;
+                    fg = theme.cmd_failed_fg;
                 }
                 segments.push(Segment::new(bg, fg, root(shell)).dont_escape());
             }
@@ -268,7 +271,7 @@ fn main() {
 
     for i in 0..segments.len() {
         segments[i].escape(shell);
-        segments[i].print(segments.get(i+1), shell);
+        segments[i].print(segments.get(i+1), shell, &theme);
     }
 
     print!(" ");

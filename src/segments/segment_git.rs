@@ -1,8 +1,8 @@
-use format::*;
 use git2::{self, BranchType, ObjectType, Repository, StatusOptions, StatusShow};
 use segment::Segment;
+use theme::Theme;
 
-pub fn segment_git(segments: &mut Vec<Segment>, git: &Option<Repository>) {
+pub fn segment_git(segments: &mut Vec<Segment>, theme: &Theme, git: &Option<Repository>) {
     if git.is_none() {
         return;
     }
@@ -44,7 +44,7 @@ pub fn segment_git(segments: &mut Vec<Segment>, git: &Option<Repository>) {
                                                 .map(|s| s.to_string()))
             }
         } else {
-            segments.push(Segment::new(GIT_DIRTY_BG, GIT_DIRTY_FG, "Big Bang"));
+            segments.push(Segment::new(theme.git_dirty_bg, theme.git_dirty_fg, "Big Bang"));
             return;
         }
     }
@@ -58,10 +58,10 @@ pub fn segment_git(segments: &mut Vec<Segment>, git: &Option<Repository>) {
         return;
     }
 
-    let (mut bg, mut fg) = (GIT_DIRTY_BG, GIT_DIRTY_FG);
+    let (mut bg, mut fg) = (theme.git_dirty_bg, theme.git_dirty_fg);
     if statuses.unwrap().len() == 0 {
-        bg = GIT_CLEAN_BG;
-        fg = GIT_CLEAN_FG;
+        bg = theme.git_clean_bg;
+        fg = theme.git_clean_fg;
     }
     segments.push(Segment::new(bg, fg, branch_name.unwrap()));
 
@@ -71,20 +71,20 @@ pub fn segment_git(segments: &mut Vec<Segment>, git: &Option<Repository>) {
                 if ahead > 0 {
                     let mut ahead = if ahead == 1 { String::new() } else { ahead.to_string() };
                     ahead.push('⬆');
-                    segments.push(Segment::new(GIT_AHEAD_BG, GIT_AHEAD_FG, ahead));
+                    segments.push(Segment::new(theme.git_ahead_bg, theme.git_ahead_fg, ahead));
                 }
 
                 if behind > 0 {
                     let mut behind = if behind == 1 { String::new() } else { behind.to_string() };
                     behind.push('⬇');
-                    segments.push(Segment::new(GIT_BEHIND_BG, GIT_BEHIND_FG, behind));
+                    segments.push(Segment::new(theme.git_behind_bg, theme.git_behind_fg, behind));
                 }
             }
         }
     }
 }
 
-pub fn segment_gitstage(segments: &mut Vec<Segment>, git: &Option<Repository>) {
+pub fn segment_gitstage(segments: &mut Vec<Segment>, theme: &Theme, git: &Option<Repository>) {
     if git.is_none() {
         return;
     }
@@ -131,21 +131,21 @@ pub fn segment_gitstage(segments: &mut Vec<Segment>, git: &Option<Repository>) {
     if staged > 0 {
         let mut string = if staged == 1 { String::with_capacity(1) } else { staged.to_string() };
         string.push('✔');
-        segments.push(Segment::new(GIT_STAGED_BG, GIT_STAGED_FG, string));
+        segments.push(Segment::new(theme.git_staged_bg, theme.git_staged_fg, string));
     }
     if notstaged > 0 {
         let mut string = if notstaged == 1 { String::with_capacity(1) } else { notstaged.to_string() };
         string.push('✎');
-        segments.push(Segment::new(GIT_NOTSTAGED_BG, GIT_NOTSTAGED_FG, string));
+        segments.push(Segment::new(theme.git_notstaged_bg, theme.git_notstaged_fg, string));
     }
     if untracked > 0 {
         let mut string = if untracked == 1 { String::with_capacity(1) } else { untracked.to_string() };
         string.push('+');
-        segments.push(Segment::new(GIT_UNTRACKED_BG, GIT_UNTRACKED_FG, string));
+        segments.push(Segment::new(theme.git_untracked_bg, theme.git_untracked_fg, string));
     }
     if conflicted > 0 {
         let mut string = if conflicted == 1 { String::with_capacity(1) } else { conflicted.to_string() };
         string.push('*');
-        segments.push(Segment::new(GIT_CONFLICTED_BG, GIT_CONFLICTED_FG, string));
+        segments.push(Segment::new(theme.git_conflicted_bg, theme.git_conflicted_fg, string));
     }
 }

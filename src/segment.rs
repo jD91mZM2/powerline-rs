@@ -1,6 +1,7 @@
 use Shell;
 use format::*;
 use std::mem;
+use theme::Theme;
 
 pub struct Segment {
     bg: u8,
@@ -31,10 +32,10 @@ impl Segment {
         mem::forget(mem::replace(&mut self.text, escape(shell, text)));
         self.escaped = true;
     }
-    pub fn print(&self, next: Option<&Segment>, shell: Shell) {
+    pub fn print(&self, next: Option<&Segment>, shell: Shell, theme: &Theme) {
         print!("{}{} {} ", Fg(shell, self.fg), Bg(shell, self.bg), self.text);
         match next {
-            Some(next) if next.bg == self.bg => print!("{}", Fg(shell, SEPARATOR_FG)),
+            Some(next) if next.bg == self.bg => print!("{}", Fg(shell, theme.separator_fg)),
             Some(next) => print!("{}{}", Fg(shell, self.bg), Bg(shell, next.bg)),
             None       => print!("{}{}{}",Fg(shell, self.bg), Reset(shell, false), Reset(shell, true))
         }
