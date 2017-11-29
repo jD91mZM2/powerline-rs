@@ -1,6 +1,9 @@
 #[macro_use]
 extern crate clap;
+#[cfg(feature = "git2")]
 extern crate git2;
+#[cfg(feature = "flame")]
+extern crate flame;
 
 mod format;
 mod module;
@@ -9,6 +12,7 @@ mod segments;
 
 use clap::{App, Arg};
 use format::*;
+#[cfg(feature = "git2")]
 use git2::Repository;
 use module::Module;
 use segment::Segment;
@@ -31,6 +35,9 @@ extern "C" {
 }
 
 fn main() {
+    #[cfg(feature = "flame")]
+    flame::start("clap-rs");
+
     let matches = App::new(crate_name!())
         .about(crate_description!())
         .author(crate_authors!())
@@ -85,6 +92,9 @@ fn main() {
         )
         .get_matches();
 
+    #[cfg(feature = "flame")]
+    flame::end("clap-rs");
+
     macro_rules! parse {
         ($name:expr) => {
             match matches.value_of($name).unwrap().parse::<u8>() {
@@ -97,14 +107,21 @@ fn main() {
         }
     }
 
+    #[cfg(feature = "flame")]
+    flame::start("parse arguments");
+
     let cwd_max_depth    = parse!("cwd-max-depth");
     let cwd_max_dir_size = parse!("cwd-max-dir-size");
     let error            = parse!("error");
 
+    #[cfg(feature = "flame")]
+    flame::start("parse modules");
+
     let modules_iter = matches.value_of("modules").unwrap()
                             .split(",")
                             .map(|module| module.parse::<Module>());
-    let mut modules = Vec::with_capacity(16); // just a guess
+
+    let mut modules = Vec::with_capacity(8); // just a guess
     for module in modules_iter {
         if module.is_err() {
             eprintln!("Module string invalid!");
@@ -112,7 +129,9 @@ fn main() {
         }
         modules.push(module.unwrap());
     }
-    modules.shrink_to_fit();
+
+    #[cfg(feature = "flame")]
+    flame::end("parse modules");
 
     let shell = match matches.value_of("shell").unwrap() {
         "bare" => Shell::Bare,
@@ -121,17 +140,30 @@ fn main() {
         _ => unreachable!()
     };
 
+    #[cfg(feature = "flame")]
+    flame::end("parse arguments");
+
+    #[cfg(feature = "flame")]
+    flame::start("git discover");
+
+    #[cfg(feature = "git2")]
     let git = if modules.iter().any(|module| *module == Module::Git || *module == Module::GitStage) {
         Repository::discover(".").ok()
     } else { None };
 
-    let mut segments = Vec::new();
+    #[cfg(feature = "flame")]
+    flame::end("git discover");
+
+    #[cfg(feature = "flame")]
+    flame::start("main");
+
+    let mut segments = Vec::with_capacity(16); // just a guess
 
     for module in modules {
         match module {
             Module::Cwd => segments::segment_cwd(&mut segments, cwd_max_depth, cwd_max_dir_size),
-            Module::Git => segments::segment_git(&mut segments, &git),
-            Module::GitStage => segments::segment_gitstage(&mut segments, &git),
+            Module::Git => { #[cfg(feature = "git2")] segments::segment_git(&mut segments, &git) },
+            Module::GitStage => { #[cfg(feature = "git2")] segments::segment_gitstage(&mut segments, &git) },
             Module::Host => {
                 let (bg, fg) = (HOSTNAME_BG, HOSTNAME_FG);
 
@@ -228,9 +260,25 @@ fn main() {
             }
         }
     }
+
+    #[cfg(feature = "flame")]
+    flame::end("main");
+    #[cfg(feature = "flame")]
+    flame::start("print");
+
     for i in 0..segments.len() {
         segments[i].escape(shell);
         segments[i].print(segments.get(i+1), shell);
     }
+
     print!(" ");
+
+    #[cfg(feature = "flame")]
+    flame::end("print");
+
+    #[cfg(feature = "flame")]
+    {
+        use std::fs::File;
+        flame::dump_html(&mut File::create("profile.html").unwrap()).unwrap();
+    }
 }
