@@ -1,7 +1,6 @@
 #[macro_use]
 extern crate clap;
 extern crate git2;
-extern crate termion;
 
 mod format;
 mod module;
@@ -92,13 +91,6 @@ fn main() {
     let cwd_max_depth    = parse!("cwd-max-depth");
     let cwd_max_dir_size = parse!("cwd-max-dir-size");
     let error            = parse!("error");
-    let max_width        = parse!("max-width");
-
-    let max_width = if let Ok((width, _)) = termion::terminal_size() {
-        ((max_width as f32 / 100.0) * width as f32) as u16
-    } else {
-        0
-    };
 
     let modules_iter = matches.value_of("modules").unwrap()
                             .split(",")
@@ -140,20 +132,6 @@ fn main() {
                 segments.push_back(Segment::new(bg, fg, root(shell)).dont_escape());
             },
             _ => () // unimplemented!()
-        }
-    }
-    if max_width != 0 {
-        loop {
-            let mut total = 0;
-            for segment in &segments {
-                total += segment.len();
-                total += 1;
-            }
-
-            if total < max_width as usize {
-                break;
-            }
-            segments.pop_front();
         }
     }
     for i in 0..segments.len() {
