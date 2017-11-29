@@ -12,7 +12,6 @@ use format::*;
 use git2::Repository;
 use module::Module;
 use segment::Segment;
-use std::collections::VecDeque;
 use std::env;
 use std::ffi::CString;
 use std::os::raw::*;
@@ -73,7 +72,7 @@ fn main() {
                             (Valid modules: cwd, git, gitstage, host, jobs, perms, root, ssh, time, user)")
                 .takes_value(true)
                 .value_name("string")
-                .default_value("ssh,cwd,perms,git,gitstage,time,root")
+                .default_value("ssh,cwd,perms,git,gitstage,root")
         )
         .arg(
             Arg::with_name("shell")
@@ -126,7 +125,7 @@ fn main() {
         Repository::discover(".").ok()
     } else { None };
 
-    let mut segments = VecDeque::new();
+    let mut segments = Vec::new();
 
     for module in modules {
         match module {
@@ -137,11 +136,11 @@ fn main() {
                 let (bg, fg) = (HOSTNAME_BG, HOSTNAME_FG);
 
                 if shell == Shell::Bare {
-                    segments.push_back(Segment::new(bg, fg, env::var("HOSTNAME")
+                    segments.push(Segment::new(bg, fg, env::var("HOSTNAME")
                                                                 .unwrap_or_else(|_| String::from("error"))));
                     continue;
                 }
-                segments.push_back(Segment::new(bg, fg, match shell {
+                segments.push(Segment::new(bg, fg, match shell {
                     Shell::Bare => unreachable!(),
                     Shell::Bash => "\\h",
                     Shell::Zsh  => "%m"
@@ -149,7 +148,7 @@ fn main() {
             },
             Module::Jobs => {
                 if shell == Shell::Bare { continue; }
-                segments.push_back(Segment::new(JOBS_BG, JOBS_FG, match shell {
+                segments.push(Segment::new(JOBS_BG, JOBS_FG, match shell {
                     Shell::Bare => unreachable!(),
                     Shell::Bash => "\\j",
                     Shell::Zsh  => "%j"
@@ -160,13 +159,13 @@ fn main() {
                 {
                     let path = CString::new(".").unwrap();
                     if unsafe { access(path.as_ptr(), 0x2) } != 0 {
-                        segments.push_back(Segment::new(RO_BG, RO_FG, ""));
+                        segments.push(Segment::new(RO_BG, RO_FG, ""));
                     }
                 }
             },
             Module::Ssh => {
                 if env::var("SSH_CLIENT").is_ok() {
-                    segments.push_back(Segment::new(SSH_BG, SSH_FG, ""));
+                    segments.push(Segment::new(SSH_BG, SSH_FG, ""));
                 }
             },
             Module::Time => {
@@ -184,11 +183,11 @@ fn main() {
                             "PM"
                         } else { "AM" };
 
-                        segments.push_back(Segment::new(bg, fg, format!("{:02}:{:02} {}", hours, mins, ampm)));
+                        segments.push(Segment::new(bg, fg, format!("{:02}:{:02} {}", hours, mins, ampm)));
                     }
                     continue;
                 }
-                segments.push_back(Segment::new(bg, fg, match shell {
+                segments.push(Segment::new(bg, fg, match shell {
                     Shell::Bare => unreachable!(),
                     Shell::Bash => "\\@",
                     Shell::Zsh  => "%@"
@@ -209,11 +208,11 @@ fn main() {
                     // but then again it would be a lot more code (even if from a library),
                     // therefore *probably* slower.
                     // But then again I don't know.
-                    segments.push_back(Segment::new(bg, fg,
+                    segments.push(Segment::new(bg, fg,
                         env::var("USER").unwrap_or_else(|_| String::from("error"))));
                     continue;
                 }
-                segments.push_back(Segment::new(bg, fg, match shell {
+                segments.push(Segment::new(bg, fg, match shell {
                     Shell::Bare => unreachable!(),
                     Shell::Bash => "\\u",
                     Shell::Zsh  => "%n"
@@ -225,7 +224,7 @@ fn main() {
                     bg = CMD_FAILED_BG;
                     fg = CMD_FAILED_FG;
                 }
-                segments.push_back(Segment::new(bg, fg, root(shell)).dont_escape());
+                segments.push(Segment::new(bg, fg, root(shell)).dont_escape());
             }
         }
     }
