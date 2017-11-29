@@ -76,10 +76,11 @@ fn main() {
         .arg(
             Arg::with_name("modules")
                 .long("modules")
-                .long_help("The list of modules to load, separated by ','\n\
-                            (Valid modules: cwd, git, gitstage, host, jobs, perms, root, ssh, time, user)")
+                .help("The list of modules to load, separated by ','")
                 .takes_value(true)
                 .value_name("string")
+                .possible_values(&["cwd", "git", "gitstage", "host", "jobs", "perms", "root", "ssh", "time", "user"])
+                .value_delimiter(",")
                 .default_value("ssh,cwd,perms,git,gitstage,root")
         )
         .arg(
@@ -90,6 +91,13 @@ fn main() {
                 .value_name("string")
                 .possible_values(&["bare", "bash", "zsh"])
                 .default_value("bash")
+        )
+        .arg(
+            Arg::with_name("theme")
+                .long("theme")
+                .help("Set this to the theme you want to use")
+                .takes_value(true)
+                .value_name("file")
         )
         .get_matches();
 
@@ -115,23 +123,21 @@ fn main() {
     let cwd_max_dir_size = parse!("cwd-max-dir-size");
     let error            = parse!("error");
 
-    let theme = theme::DEFAULT;
+    let theme = if let Some(file) = matches.value_of("theme") {
+        if let Ok(theme) = theme::load(file) {
+            theme
+        } else {
+            eprintln!("Invalid theme.");
+            theme::DEFAULT
+        }
+    } else { theme::DEFAULT };
 
     #[cfg(feature = "flame")]
     flame::start("parse modules");
 
-    let modules_iter = matches.value_of("modules").unwrap()
-                            .split(",")
-                            .map(|module| module.parse::<Module>());
-
-    let mut modules = Vec::with_capacity(8); // just a guess
-    for module in modules_iter {
-        if module.is_err() {
-            eprintln!("Module string invalid!");
-            return;
-        }
-        modules.push(module.unwrap());
-    }
+    let modules: Vec<_> = matches.values_of("modules").unwrap()
+                            .map(|module| module.parse().unwrap())
+                            .collect();
 
     #[cfg(feature = "flame")]
     flame::end("parse modules");
