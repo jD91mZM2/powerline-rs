@@ -9,7 +9,7 @@ mod segment;
 
 use clap::{App, Arg};
 use format::*;
-use git2::{BranchType, Repository, StatusOptions, StatusShow};
+use git2::{BranchType, ObjectType, Repository, StatusOptions, StatusShow};
 use module::Module;
 use segment::Segment;
 use std::collections::VecDeque;
@@ -199,8 +199,19 @@ fn main() {
                 }
 
                 if current.is_none() {
-                    segments.push_back(Segment::new(REPO_DIRTY_BG, REPO_DIRTY_FG, "Big Bang"));
-                    continue;
+                    // Could be a detached head
+                    if let Ok(head) = git.head() {
+                        if let Some(target) = head.target() {
+                            current = git.find_object(target, Some(ObjectType::Any))
+                                        .ok()
+                                        .and_then(|obj| obj.short_id().ok())
+                                        .and_then(|buf| buf.as_str()
+                                                            .map(|s| s.to_string()))
+                        }
+                    } else {
+                        segments.push_back(Segment::new(REPO_DIRTY_BG, REPO_DIRTY_FG, "Big Bang"));
+                        continue;
+                    }
                 }
 
                 let statuses = git.statuses(Some(
