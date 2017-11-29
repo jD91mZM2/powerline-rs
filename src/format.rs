@@ -69,3 +69,24 @@ pub fn root(shell: Shell) -> &'static str {
         Shell::Zsh  => "%#"
     }
 }
+pub fn escape(shell: Shell, input: String) -> String {
+    if shell == Shell::Bare {
+        return input;
+    }
+    let mut output = String::with_capacity(input.len());
+    for c in input.chars() {
+        match shell {
+            Shell::Bash => match c {
+                '\\' => output.push_str("\\\\"),
+                '$'  => output.push_str("\\$"),
+                c    => output.push(c)
+            },
+            Shell::Zsh => match c {
+                '%' => output.push_str("%%"),
+                c   => output.push(c)
+            },
+            Shell::Bare => unreachable!()
+        }
+    }
+    output
+}

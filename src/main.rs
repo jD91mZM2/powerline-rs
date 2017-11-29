@@ -137,7 +137,7 @@ fn main() {
                     bg = CMD_FAILED_BG;
                     fg = CMD_FAILED_FG;
                 }
-                segments.push_back(Segment::new(bg, fg, root(shell)));
+                segments.push_back(Segment::new(bg, fg, root(shell)).dont_escape());
             },
             _ => () // unimplemented!()
         }
@@ -157,6 +157,7 @@ fn main() {
         }
     }
     for i in 0..segments.len() {
+        segments[i].escape(shell);
         segments[i].print(segments.get(i+1), shell);
     }
     print!(" ");

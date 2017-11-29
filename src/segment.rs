@@ -1,9 +1,12 @@
 use Shell;
 use format::*;
+use std::mem;
 
 pub struct Segment {
     bg: u8,
     fg: u8,
+
+    escaped: bool,
     text: String
 }
 impl Segment {
@@ -11,8 +14,22 @@ impl Segment {
         Segment {
             bg:    bg,
             fg:    fg,
-            text:  text.into(),
+
+            escaped: false,
+            text:  text.into()
         }
+    }
+    pub fn dont_escape(mut self) -> Self {
+        self.escaped = true;
+        self
+    }
+    pub fn escape(&mut self, shell: Shell) {
+        if self.escaped {
+            return;
+        }
+        let text = mem::replace(&mut self.text, unsafe { mem::uninitialized() });
+        mem::forget(mem::replace(&mut self.text, escape(shell, text)));
+        self.escaped = true;
     }
     pub fn print(&self, next: Option<&Segment>, shell: Shell) {
         print!("{}{} {} ", Fg(shell, self.fg), Bg(shell, self.bg), self.text);
