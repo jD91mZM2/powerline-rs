@@ -1,6 +1,6 @@
 [package]
 name = "powerline-rs"
-description = "Rust rewrite of the Go rewrite of powerline-shell. True rewrite-ception"
+description = "powerline-shell rewritten in Rust. Inspired by powerline-go."
 version = "0.1.0"
 authors = ["jD91mZM2 <me@krake.one>"]
 
