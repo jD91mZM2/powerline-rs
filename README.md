@@ -15,6 +15,11 @@ If you don't use Arch Linux, you could do it with `cargo`:
 cargo install powerline-rs
 ```
 
+Then add the following code to your shell:  
+[Bash](#bash)  
+[Fish](#fish)  
+[Zsh](#zsh)
+
 ### What's new?
 
 Well, the default modules have changed to not include the username and hostname.
@@ -35,3 +40,31 @@ Most of the service-specific modules are deleted. I am very lazy.
 Pull requests are welcome, though.
 
 Also, the `jobs` module won't work with `--shell bare`.
+
+# Add it to your shell
+
+## Bash
+
+```Bash
+prompt() {
+    PS1="$(powerline-rs --shell bash $?)"
+}
+PROMPT_COMMAND=prompt
+```
+
+## Fish
+
+```Fish
+function fish_prompt
+    powerline-rs --shell bare $status
+end
+```
+
+## Zsh
+
+```Zsh
+prompt() {
+    PS1="$(powerline-rs --shell zsh $?)"
+}
+precmd_functions+=(prompt)
+```
