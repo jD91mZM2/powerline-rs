@@ -7,6 +7,14 @@
 Speed! I would argue that even the debug version of `powerline-rs` at least feels faster than `powerline-go`.
 The Rust language is perfect for fast applications, since copying large objects isn't implicit.
 
+## How to install
+
+Easiest way to install is with the [Arch Linux AUR](https://aur.archlinux.org/packages/powerline-rs/).  
+If you don't use Arch Linux, you could do it with `cargo`:  
+```
+cargo install powerline-rs
+```
+
 ### What's new?
 
 Well, the default modules have changed to not include the username and hostname.
