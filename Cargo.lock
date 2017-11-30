@@ -200,7 +200,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "powerline-rs"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "clap 2.27.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "flame 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",

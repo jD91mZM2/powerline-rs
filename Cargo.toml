@@ -1,15 +1,20 @@
 [package]
 name = "powerline-rs"
 description = "powerline-shell rewritten in Rust. Inspired by powerline-go."
-version = "0.1.0"
+version = "0.1.1"
 authors = ["jD91mZM2 <me@krake.one>"]
 license-file = "LICENSE"
 repository = "https://github.com/jD91mZM2/powerline-rs"
+
+build = "build.rs"
 
 [dependencies]
 clap  = "2.27"
 git2  = { version = "0.6", optional = true }
 flame = { version = "0.2", optional = true }
+
+[build-dependencies]
+clap  = "2.27"
 
 [features]
 default = ["git2"]
