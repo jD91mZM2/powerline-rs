@@ -15,6 +15,18 @@ If you don't use Arch Linux, you could do it with `cargo`:
 cargo install powerline-rs
 ```
 
+In order to use optional features, add something like `--features "feature1,feature2,etc"` to the end of the command.  
+To disable default features, add `--no-default-features` (and manually readd features you want to keep).  
+
+Optional features:
+
+- chrono (Time support for --shell bare)
+- flame  (Not recommended for production; adds benchmarks)
+
+Default features:
+
+- git2 (Git support)
+
 Then add the following code to your shell:  
 [Bash](#bash)  
 [Fish](#fish)  
