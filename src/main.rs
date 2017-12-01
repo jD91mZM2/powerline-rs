@@ -1,9 +1,7 @@
-#[macro_use]
-extern crate clap;
-#[cfg(feature = "git2")]
-extern crate git2;
-#[cfg(feature = "flame")]
-extern crate flame;
+#[cfg(feature = "chrono")] extern crate chrono;
+#[macro_use] extern crate clap;
+#[cfg(feature = "git2")] extern crate git2;
+#[cfg(feature = "flame")] extern crate flame;
 
 mod cli;
 mod format;
@@ -12,15 +10,16 @@ mod segment;
 mod segments;
 mod theme;
 
+#[cfg(feature = "chrono")] use chrono::Local;
+#[cfg(feature = "chrono")] use chrono::prelude::*;
 use format::*;
-#[cfg(feature = "git2")]
-use git2::Repository;
+#[cfg(feature = "git2")] use git2::Repository;
 use module::Module;
 use segment::Segment;
 use std::env;
 use std::ffi::CString;
+#[cfg(feature = "chrono")] use std::fmt::Write;
 use std::os::raw::*;
-use std::time::UNIX_EPOCH;
 
 #[derive(Clone, Copy, Eq, PartialEq)]
 pub enum Shell {
@@ -158,19 +157,18 @@ fn main() {
             Module::Time => {
                 let (bg, fg) = (theme.time_bg, theme.time_fg);
                 if shell == Shell::Bare {
-                    if let Ok(duration) = UNIX_EPOCH.elapsed() {
-                        let secs = duration.as_secs();
-                        let mut hours = (secs / 60 / 60) % 24;
-                        let mins = (secs / 60) % 60;
+                    #[cfg(feature = "chrono")]
+                    {
+                        let time = Local::now();
 
-                        println!("{}", hours);
+                        let (ampm, hour) = time.hour12();
+                        let ampm = if ampm { "AM" } else { "PM" };
 
-                        let ampm = if hours > 12 {
-                            hours -= 12;
-                            "PM"
-                        } else { "AM" };
+                        let mut formatted = String::with_capacity(2 + 1 + 2 + 1 + 2);
+                        write!(formatted, "{:02}:{:02} {}", hour, time.minute(), ampm).unwrap();
+                        // I don't think writing to a String can fail (unless maybe if it's not UTF-8)
 
-                        segments.push(Segment::new(bg, fg, format!("{:02}:{:02} {}", hours, mins, ampm)));
+                        segments.push(Segment::new(bg, fg, formatted));
                     }
                     continue;
                 }
