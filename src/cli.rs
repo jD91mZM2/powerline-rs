@@ -27,15 +27,6 @@ pub fn build_cli() -> App<'static, 'static> {
                 .default_value("0")
         )
         .arg(
-            Arg::with_name("max-width")
-                .long("max-width")
-                .help("Maximum width of the shell that the prompt may use, in percent.\n\
-                      Setting this to 0 disables the shrinking subsystem.")
-                .takes_value(true)
-                .value_name("int")
-                .default_value("50")
-        )
-        .arg(
             Arg::with_name("modules")
                 .long("modules")
                 .help("The list of modules to load, separated by ','")
