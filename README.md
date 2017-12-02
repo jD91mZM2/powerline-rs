@@ -20,11 +20,11 @@ To disable default features, add `--no-default-features` (and manually readd fea
 
 Optional features:
 
-- chrono (Time support for --shell bare)
 - flame  (Not recommended for production; adds benchmarks)
 
 Default features:
 
+- chrono (Time support for --shell bare)
 - git2 (Git support)
 
 Then add the following code to your shell:  
