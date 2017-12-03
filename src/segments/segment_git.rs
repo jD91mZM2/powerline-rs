@@ -59,7 +59,7 @@ pub fn segment_git(segments: &mut Vec<Segment>, theme: &Theme, git: &Option<Repo
     }
 
     let (mut bg, mut fg) = (theme.git_dirty_bg, theme.git_dirty_fg);
-    if statuses.unwrap().len() == 0 {
+    if statuses.unwrap().is_empty() {
         bg = theme.git_clean_bg;
         fg = theme.git_clean_fg;
     }
