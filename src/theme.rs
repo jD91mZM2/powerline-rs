@@ -122,6 +122,9 @@ pub fn load(file: &str) -> Result<Theme, Box<StdError>> {
 
     for line in reader.lines() {
         let line = line?;
+        if line.starts_with('#') || line.chars().all(char::is_whitespace) {
+            continue;
+        }
         let mut parts = line.splitn(2, '=');
 
         let variable = parts.next().map(|inner| inner.trim()).ok_or_else(|| ErrCorrupt)?;
