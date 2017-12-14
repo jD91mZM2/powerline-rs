@@ -32,9 +32,9 @@ pub fn build_cli() -> App<'static, 'static> {
                 .help("The list of modules to load, separated by ','")
                 .takes_value(true)
                 .value_name("string")
-                .possible_values(&["cwd", "git", "gitstage", "host", "jobs", "perms", "root", "ssh", "time", "user"])
+                .possible_values(&["cwd", "git", "gitstage", "host", "jobs", "perms", "root", "ssh", "time", "user", "newline"])
                 .value_delimiter(",")
-                .default_value("ssh,cwd,perms,git,gitstage,root")
+                .default_value("ssh,cwd,perms,git,gitstage,root,newline")
         )
         .arg(
             Arg::with_name("shell")
@@ -51,5 +51,13 @@ pub fn build_cli() -> App<'static, 'static> {
                 .help("Set this to the theme you want to use")
                 .takes_value(true)
                 .value_name("file")
+        )
+        .arg(
+            Arg::with_name("newline")
+                .long("newline")
+                .help("Adds a newline after prompt")
+                .takes_value(true)
+                .value_name("bool")
+                .default_value("1")
         )
 }
