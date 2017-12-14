@@ -54,10 +54,9 @@ pub fn build_cli() -> App<'static, 'static> {
         )
         .arg(
             Arg::with_name("newline")
+                .short("n")
                 .long("newline")
                 .help("Adds a newline after prompt")
-                .takes_value(true)
-                .value_name("bool")
-                .default_value("1")
         )
 }
+
