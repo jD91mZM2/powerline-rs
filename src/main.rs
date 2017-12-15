@@ -210,13 +210,7 @@ fn main() {
                     fg = theme.cmd_failed_fg;
                 }
                 segments.push(Segment::new(bg, fg, root(shell)).dont_escape());
-            },
-           Module::Newline => {
-                let (mut bg, mut fg) = (theme.username_bg, theme.username_fg);
-                if matches.is_present("newline")  {
-                    segments.push(Segment::new(bg, fg, String::new()).set_newline());
-                }
-            },
+            }
         }
     }
 
@@ -230,7 +224,11 @@ fn main() {
         segments[i].print(segments.get(i+1), shell, &theme);
     }
 
-    print!(" ");
+    if matches.is_present("newline") {
+        println!();
+    } else {
+        print!(" ");
+    }
 
     #[cfg(feature = "flame")]
     flame::end("print");
@@ -241,4 +239,3 @@ fn main() {
         flame::dump_html(&mut File::create("profile.html").unwrap()).unwrap();
     }
 }
-

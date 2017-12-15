@@ -7,7 +7,6 @@ pub struct Segment {
     bg: u8,
     fg: u8,
 
-    newline: bool,
     escaped: bool,
     text: String
 }
@@ -17,15 +16,10 @@ impl Segment {
             bg:    bg,
             fg:    fg,
 
-            newline: false,
             escaped: false,
             text:  text.into()
         }
     }
-	pub fn set_newline(mut self) -> Self {
-		self.newline = true;
-		self
-	}
     pub fn dont_escape(mut self) -> Self {
         self.escaped = true;
         self
@@ -43,9 +37,7 @@ impl Segment {
         match next {
             Some(next) if next.bg == self.bg => print!("{}", Fg(shell, theme.separator_fg)),
             Some(next) => print!("{}{}", Fg(shell, self.bg), Bg(shell, next.bg)),
-			None if self.newline => print!("{}{}{}\\n",Fg(shell, self.bg), Reset(shell, false), Reset(shell, true)),
             None       => print!("{}{}{}",Fg(shell, self.bg), Reset(shell, false), Reset(shell, true))
         }
     }
 }
-

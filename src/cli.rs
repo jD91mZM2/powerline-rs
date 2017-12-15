@@ -32,9 +32,14 @@ pub fn build_cli() -> App<'static, 'static> {
                 .help("The list of modules to load, separated by ','")
                 .takes_value(true)
                 .value_name("string")
-                .possible_values(&["cwd", "git", "gitstage", "host", "jobs", "perms", "root", "ssh", "time", "user", "newline"])
+                .possible_values(&["cwd", "git", "gitstage", "host", "jobs", "perms", "root", "ssh", "time", "user"])
                 .value_delimiter(",")
-                .default_value("ssh,cwd,perms,git,gitstage,root,newline")
+                .default_value("ssh,cwd,perms,git,gitstage,root")
+        )
+        .arg(
+            Arg::with_name("newline")
+                .long("newline")
+                .help("Adds a newline after the prompt")
         )
         .arg(
             Arg::with_name("shell")
@@ -52,11 +57,4 @@ pub fn build_cli() -> App<'static, 'static> {
                 .takes_value(true)
                 .value_name("file")
         )
-        .arg(
-            Arg::with_name("newline")
-                .short("n")
-                .long("newline")
-                .help("Adds a newline after prompt")
-        )
 }
-

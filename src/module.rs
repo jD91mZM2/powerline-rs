@@ -11,8 +11,7 @@ pub enum Module {
     Root,
     Ssh,
     Time,
-    User,
-    Newline
+    User
 }
 
 impl FromStr for Module {
@@ -29,9 +28,7 @@ impl FromStr for Module {
             "ssh"      => Ok(Module::Ssh),
             "time"     => Ok(Module::Time),
             "user"     => Ok(Module::User),
-            "newline"  => Ok(Module::Newline),
             _          => Err(())
         }
     }
 }
-
