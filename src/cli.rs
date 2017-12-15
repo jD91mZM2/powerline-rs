@@ -37,6 +37,11 @@ pub fn build_cli() -> App<'static, 'static> {
                 .default_value("ssh,cwd,perms,git,gitstage,root")
         )
         .arg(
+            Arg::with_name("newline")
+                .long("newline")
+                .help("Adds a newline after the prompt")
+        )
+        .arg(
             Arg::with_name("shell")
                 .long("shell")
                 .help("Set this to your shell type")

@@ -224,7 +224,11 @@ fn main() {
         segments[i].print(segments.get(i+1), shell, &theme);
     }
 
-    print!(" ");
+    if matches.is_present("newline") {
+        println!();
+    } else {
+        print!(" ");
+    }
 
     #[cfg(feature = "flame")]
     flame::end("print");
