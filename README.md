@@ -5,7 +5,7 @@
 ## Why?
 
 Speed! I would argue that even the debug version of `powerline-rs` at least feels faster than `powerline-go`.
-The Rust language is perfect for fast applications, since copying large objects isn't implicit.
+The Rust language is perfect for fast applications, since copying large structures isn't implicit.
 
 ## How to install
 
