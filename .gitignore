@@ -1,4 +1,4 @@
 /target/
 **/*.rs.bk
-powerline-rs.bash-completion
+powerline-rs.bash
 powerline-rs.fish

@@ -1,0 +1,64 @@
+_powerline-rs() {
+    local i cur prev opts cmds
+    COMPREPLY=()
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+    cmd=""
+    opts=""
+
+    for i in ${COMP_WORDS[@]}
+    do
+        case "${i}" in
+            powerline-rs)
+                cmd="powerline-rs"
+                ;;
+            
+            powerline__rs)
+                cmd+="__powerline__rs"
+                ;;
+            *)
+                ;;
+        esac
+    done
+
+    case "${cmd}" in
+        powerline-rs)
+            opts=" -h -V  --help --version --cwd-max-depth --cwd-max-dir-size --modules --shell --theme  <error> "
+            if [[ ${cur} == -* || ${COMP_CWORD} -eq 1 ]] ; then
+                COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+                return 0
+            fi
+            case "${prev}" in
+                
+                --cwd-max-depth)
+                    COMPREPLY=("<int>")
+                    return 0
+                    ;;
+                --cwd-max-dir-size)
+                    COMPREPLY=("<int>")
+                    return 0
+                    ;;
+                --modules)
+                    COMPREPLY=($(compgen -W "cwd git gitstage host jobs perms root ssh time user" -- ${cur}))
+                    return 0
+                    ;;
+                --shell)
+                    COMPREPLY=($(compgen -W "bare bash zsh" -- ${cur}))
+                    return 0
+                    ;;
+                --theme)
+                    COMPREPLY=("<file>")
+                    return 0
+                    ;;
+                *)
+                    COMPREPLY=()
+                    ;;
+            esac
+            COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+            return 0
+            ;;
+        
+    esac
+}
+
+complete -F _powerline-rs -o bashdefault -o default powerline-rs
