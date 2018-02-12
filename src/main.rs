@@ -43,24 +43,12 @@ fn main() {
     #[cfg(feature = "flame")]
     flame::end("clap-rs");
 
-    macro_rules! parse {
-        ($name:expr) => {
-            match matches.value_of($name).unwrap().parse::<u8>() {
-                Ok(value) => value,
-                Err(_)  => {
-                    eprintln!(concat!("Value of --", $name, " isn't a valid number."));
-                    return;
-                }
-            }
-        }
-    }
-
     #[cfg(feature = "flame")]
     flame::start("parse arguments");
 
-    let cwd_max_depth    = parse!("cwd-max-depth");
-    let cwd_max_dir_size = parse!("cwd-max-dir-size");
-    let error            = parse!("error");
+    let cwd_max_depth    = value_t_or_exit!(matches, "cwd-max-depth", u8);
+    let cwd_max_dir_size = value_t_or_exit!(matches, "cwd-max-dir-size", u8);
+    let error            = value_t_or_exit!(matches, "error", u8);
 
     #[cfg(feature = "flame")]
     flame::start("parse theme");
