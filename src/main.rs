@@ -12,14 +12,14 @@ mod theme;
 
 #[cfg(feature = "chrono")] use chrono::Local;
 #[cfg(feature = "chrono")] use chrono::prelude::*;
-use format::*;
+#[cfg(feature = "chrono")] use std::fmt::Write;
 #[cfg(feature = "git2")] use git2::Repository;
+#[cfg(unix)] use std::ffi::CString;
+#[cfg(unix)] use std::os::raw::*;
+use format::*;
 use module::Module;
 use segment::Segment;
 use std::env;
-use std::ffi::CString;
-#[cfg(feature = "chrono")] use std::fmt::Write;
-use std::os::raw::*;
 
 #[derive(Clone, Copy, Eq, PartialEq)]
 pub enum Shell {
