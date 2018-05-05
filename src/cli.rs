@@ -16,7 +16,8 @@ pub fn build_cli() -> App<'static, 'static> {
         .arg(
             Arg::with_name("cwd-max-dir-size")
                 .long("cwd-max-dir-size")
-                .help("Maximum number of letters displayed for each directory in the path. Setting this to 0 means unlimited.")
+                .help("Maximum number of letters displayed for each directory in the path.\
+                       Setting this to 0 means unlimited.")
                 .takes_value(true)
                 .value_name("int")
                 .default_value("15")
@@ -32,9 +33,9 @@ pub fn build_cli() -> App<'static, 'static> {
                 .help("The list of modules to load, separated by ','")
                 .takes_value(true)
                 .value_name("string")
-                .possible_values(&["cwd", "git", "gitstage", "host", "jobs", "perms", "root", "ssh", "time", "user"])
+                .possible_values(::module::ALL)
                 .value_delimiter(",")
-                .default_value("ssh,cwd,perms,git,gitstage,root")
+                .default_value("ssh,cwd,perms,git,gitstage,ps,root")
         )
         .arg(
             Arg::with_name("newline")

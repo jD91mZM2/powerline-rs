@@ -32,6 +32,7 @@ pub enum Shell {
 extern "C" {
     fn access(pathname: *const c_char, mode: c_int) -> c_int;
     fn getuid() -> c_int;
+    fn getpid() -> c_int; // std::process::id() is unstable
 }
 
 fn main() {
@@ -106,12 +107,15 @@ fn main() {
             Module::Cwd => segments::segment_cwd(&mut segments, &theme, cwd_max_depth, cwd_max_dir_size),
             Module::Git => { #[cfg(feature = "git2")] segments::segment_git(&mut segments, &theme, &git) },
             Module::GitStage => { #[cfg(feature = "git2")] segments::segment_gitstage(&mut segments, &theme, &git) },
+            Module::Ps => segments::segment_ps(&mut segments, &theme),
             Module::Host => {
                 let (bg, fg) = (theme.hostname_bg, theme.hostname_fg);
 
                 if shell == Shell::Bare {
-                    segments.push(Segment::new(bg, fg, env::var("HOSTNAME")
-                                                                .unwrap_or_else(|_| String::from("error"))));
+                    segments.push(
+                        Segment::new(bg, fg, env::var("HOSTNAME")
+                            .unwrap_or_else(|_| String::from("error")))
+                    );
                     continue;
                 }
                 segments.push(Segment::new(bg, fg, match shell {
@@ -154,7 +158,6 @@ fn main() {
 
                         let mut formatted = String::with_capacity(2 + 1 + 2 + 1 + 2);
                         write!(formatted, "{:02}:{:02} {}", hour, time.minute(), ampm).unwrap();
-                        // I don't think writing to a String can fail (unless maybe if it's not UTF-8)
 
                         segments.push(Segment::new(bg, fg, formatted));
                     }
@@ -198,7 +201,7 @@ fn main() {
                     fg = theme.cmd_failed_fg;
                 }
                 segments.push(Segment::new(bg, fg, root(shell)).dont_escape());
-            }
+            },
         }
     }
 

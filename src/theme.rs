@@ -46,7 +46,10 @@ pub struct Theme {
     pub cmd_passed_bg: u8,
     pub cmd_passed_fg: u8,
     pub cmd_failed_bg: u8,
-    pub cmd_failed_fg: u8
+    pub cmd_failed_fg: u8,
+
+    pub ps_bg: u8,
+    pub ps_fg: u8
 }
 
 pub const DEFAULT: Theme = Theme {
@@ -66,6 +69,8 @@ pub const DEFAULT: Theme = Theme {
 
     jobs_bg: 238,
     jobs_fg: 39,
+    ps_bg: 238,
+    ps_fg: 39,
 
     time_bg: 238,
     time_fg: 250,

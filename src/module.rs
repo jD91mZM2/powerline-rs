@@ -1,5 +1,19 @@
 use std::str::FromStr;
 
+pub const ALL: &[&str] = &[
+    "cwd",
+    "git",
+    "gitstage",
+    "host",
+    "jobs",
+    "perms",
+    "ps",
+    "root",
+    "ssh",
+    "time",
+    "user"
+];
+
 #[derive(PartialEq, Eq)]
 pub enum Module {
     Cwd,
@@ -8,6 +22,7 @@ pub enum Module {
     Host,
     Jobs,
     Perms,
+    Ps,
     Root,
     Ssh,
     Time,
@@ -24,6 +39,7 @@ impl FromStr for Module {
             "host"     => Ok(Module::Host),
             "jobs"     => Ok(Module::Jobs),
             "perms"    => Ok(Module::Perms),
+            "ps"       => Ok(Module::Ps),
             "root"     => Ok(Module::Root),
             "ssh"      => Ok(Module::Ssh),
             "time"     => Ok(Module::Time),
