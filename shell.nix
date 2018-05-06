@@ -1,0 +1,1 @@
+(import <nixpkgs> {}).powerline-rs

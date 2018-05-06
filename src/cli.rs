@@ -35,7 +35,7 @@ pub fn build_cli() -> App<'static, 'static> {
                 .value_name("string")
                 .possible_values(::module::ALL)
                 .value_delimiter(",")
-                .default_value("ssh,cwd,perms,git,gitstage,ps,root")
+                .default_value("ssh,cwd,perms,git,gitstage,root")
         )
         .arg(
             Arg::with_name("newline")
