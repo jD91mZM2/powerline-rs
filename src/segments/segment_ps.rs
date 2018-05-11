@@ -1,7 +1,6 @@
 use std::{
     fmt::Write,
-    fs::{self, File},
-    io::Read,
+    fs,
     path::Path
 };
 use segment::Segment;
@@ -57,10 +56,7 @@ pub fn segment_ps(segments: &mut Vec<Segment>, theme: &Theme) {
     }
 }
 pub fn get_process_tty(file: &Path) -> Option<usize> {
-    let mut content = String::new();
-    let mut file = File::open(&file).ok()?;
-    file.read_to_string(&mut content).ok()?;
-
-   content.split_whitespace().nth(PROC_STAT_PID)
-       .and_then(|n| n.parse().ok())
+    fs::read_to_string(&file).ok()?
+        .split_whitespace().nth(PROC_STAT_PID)
+        .and_then(|n| n.parse().ok())
 }
