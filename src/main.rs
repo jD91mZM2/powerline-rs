@@ -125,12 +125,17 @@ fn main() {
                 }).dont_escape());
             },
             Module::Jobs => {
-                if shell == Shell::Bare { continue; }
-                segments.push(Segment::new(theme.jobs_bg, theme.jobs_fg, match shell {
-                    Shell::Bare => unreachable!(),
-                    Shell::Bash => "\\j",
-                    Shell::Zsh  => "%j"
-                }).dont_escape());
+                segments.push(match shell {
+                    Shell::Bare => continue,
+                    Shell::Bash =>
+                        Segment::new(theme.jobs_bg, theme.jobs_fg, "\\j")
+                            .with_before(r#"$(test -n "$(jobs -p)" && echo -n ""#)
+                            .with_after(r#"")"#),
+                    Shell::Zsh =>
+                        Segment::new(theme.jobs_bg, theme.jobs_fg, "%j")
+                            .with_before("%(1j.")
+                            .with_after(".)"),
+                }.as_conditional().dont_escape());
             },
             Module::Perms => {
                 #[cfg(unix)]
