@@ -1,14 +1,13 @@
+use {Powerline, Segment};
 use std::{
     fmt::Write,
     fs,
     path::Path
 };
-use segment::Segment;
-use theme::Theme;
 
 const PROC_STAT_PID: usize = 6; // 0-based, 7th word
 
-pub fn segment_ps(segments: &mut Vec<Segment>, theme: &Theme) {
+pub fn segment_ps(p: &mut Powerline) {
     let pid = unsafe { ::getpid() };
     let tty = {
         let mut path = String::with_capacity(6 + 4 + 5); // 4 = reserved pid length
@@ -52,7 +51,7 @@ pub fn segment_ps(segments: &mut Vec<Segment>, theme: &Theme) {
     }
 
     if count > 0 {
-        segments.push(Segment::new(theme.ps_bg, theme.ps_fg, count.to_string()));
+        p.segments.push(Segment::new(p.theme.ps_bg, p.theme.ps_fg, count.to_string()));
     }
 }
 pub fn get_process_tty(file: &Path) -> Option<usize> {

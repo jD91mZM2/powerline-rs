@@ -6,26 +6,35 @@
 mod cli;
 mod format;
 mod module;
-mod segment;
 mod segments;
 mod theme;
 
 #[cfg(feature = "chrono")] use chrono::Local;
 #[cfg(feature = "chrono")] use chrono::prelude::*;
 #[cfg(feature = "chrono")] use std::fmt::Write;
-#[cfg(feature = "git2")] use git2::Repository;
 #[cfg(unix)] use std::ffi::CString;
 #[cfg(unix)] use std::os::raw::*;
 use format::*;
 use module::Module;
-use segment::Segment;
+use segments::Segment;
 use std::env;
+use theme::Theme;
 
 #[derive(Clone, Copy, Eq, PartialEq)]
 pub enum Shell {
     Bare,
     Bash,
     Zsh
+}
+
+pub struct Powerline {
+    segments: Vec<Segment>,
+    theme: Theme,
+
+    #[cfg(feature = "git2")]
+    git: Option<git2::Repository>,
+    #[cfg(feature = "git2")]
+    git_statuses: Option<Vec<git2::Status>>
 }
 
 #[cfg(unix)]
@@ -87,52 +96,49 @@ fn main() {
     flame::end("parse arguments");
 
     #[cfg(feature = "flame")]
-    flame::start("git discover");
-
-    #[cfg(feature = "git2")]
-    let git = if modules.iter().any(|module| *module == Module::Git || *module == Module::GitStage) {
-        Repository::discover(".").ok()
-    } else { None };
-
-    #[cfg(feature = "flame")]
-    flame::end("git discover");
-
-    #[cfg(feature = "flame")]
     flame::start("main");
 
-    let mut segments = Vec::with_capacity(16); // just a guess
+    let mut p = Powerline {
+        segments: Vec::with_capacity(16), // just a guess
+        theme: theme,
+
+        #[cfg(feature = "git2")]
+        git: None,
+        #[cfg(feature = "git2")]
+        git_statuses: None
+    };
 
     for module in modules {
         match module {
-            Module::Cwd => segments::segment_cwd(&mut segments, &theme, cwd_max_depth, cwd_max_dir_size),
-            Module::Git => { #[cfg(feature = "git2")] segments::segment_git(&mut segments, &theme, &git) },
-            Module::GitStage => { #[cfg(feature = "git2")] segments::segment_gitstage(&mut segments, &theme, &git) },
-            Module::Ps => segments::segment_ps(&mut segments, &theme),
+            Module::Cwd => segments::segment_cwd(&mut p, cwd_max_depth, cwd_max_dir_size),
+            Module::Git => { #[cfg(feature = "git2")] segments::segment_git(&mut p) },
+            Module::GitStage => { #[cfg(feature = "git2")] segments::segment_gitstage(&mut p) },
+            Module::Ps => segments::segment_ps(&mut p),
             Module::Host => {
-                let (bg, fg) = (theme.hostname_bg, theme.hostname_fg);
+                let (bg, fg) = (p.theme.hostname_bg, p.theme.hostname_fg);
 
                 if shell == Shell::Bare {
-                    segments.push(
+                    p.segments.push(
                         Segment::new(bg, fg, env::var("HOSTNAME")
                             .unwrap_or_else(|_| String::from("error")))
                     );
                     continue;
                 }
-                segments.push(Segment::new(bg, fg, match shell {
+                p.segments.push(Segment::new(bg, fg, match shell {
                     Shell::Bare => unreachable!(),
                     Shell::Bash => "\\h",
                     Shell::Zsh  => "%m"
                 }).dont_escape());
             },
             Module::Jobs => {
-                segments.push(match shell {
+                p.segments.push(match shell {
                     Shell::Bare => continue,
                     Shell::Bash =>
-                        Segment::new(theme.jobs_bg, theme.jobs_fg, "\\j")
+                        Segment::new(p.theme.jobs_bg, p.theme.jobs_fg, "\\j")
                             .with_before(r#"$(test -n "$(jobs -p)" && echo -n ""#)
                             .with_after(r#"")"#),
                     Shell::Zsh =>
-                        Segment::new(theme.jobs_bg, theme.jobs_fg, "%j")
+                        Segment::new(p.theme.jobs_bg, p.theme.jobs_fg, "%j")
                             .with_before("%(1j.")
                             .with_after(".)"),
                 }.as_conditional().dont_escape());
@@ -142,17 +148,17 @@ fn main() {
                 {
                     let path = CString::new(".").unwrap();
                     if unsafe { access(path.as_ptr(), 0x2) } != 0 {
-                        segments.push(Segment::new(theme.ro_bg, theme.ro_fg, ""));
+                        p.segments.push(Segment::new(p.theme.ro_bg, p.theme.ro_fg, ""));
                     }
                 }
             },
             Module::Ssh => {
                 if env::var("SSH_CLIENT").is_ok() {
-                    segments.push(Segment::new(theme.ssh_bg, theme.ssh_fg, ""));
+                    p.segments.push(Segment::new(p.theme.ssh_bg, p.theme.ssh_fg, ""));
                 }
             },
             Module::Time => {
-                let (bg, fg) = (theme.time_bg, theme.time_fg);
+                let (bg, fg) = (p.theme.time_bg, p.theme.time_fg);
                 if shell == Shell::Bare {
                     #[cfg(feature = "chrono")]
                     {
@@ -164,23 +170,23 @@ fn main() {
                         let mut formatted = String::with_capacity(2 + 1 + 2 + 1 + 2);
                         write!(formatted, "{:02}:{:02} {}", hour, time.minute(), ampm).unwrap();
 
-                        segments.push(Segment::new(bg, fg, formatted));
+                        p.segments.push(Segment::new(bg, fg, formatted));
                     }
                     continue;
                 }
-                segments.push(Segment::new(bg, fg, match shell {
+                p.segments.push(Segment::new(bg, fg, match shell {
                     Shell::Bare => unreachable!(),
                     Shell::Bash => "\\@",
                     Shell::Zsh  => "%@"
                 }).dont_escape())
             },
             Module::User => {
-                let (mut bg, fg) = (theme.username_bg, theme.username_fg);
+                let (mut bg, fg) = (p.theme.username_bg, p.theme.username_fg);
 
                 #[cfg(unix)]
                 {
                     if unsafe { getuid() } == 0 {
-                        bg = theme.username_root_bg;
+                        bg = p.theme.username_root_bg;
                     }
                 }
 
@@ -189,23 +195,23 @@ fn main() {
                     // but then again it would be a lot more code (even if from a library),
                     // therefore *probably* slower.
                     // But then again I don't know.
-                    segments.push(Segment::new(bg, fg,
+                    p.segments.push(Segment::new(bg, fg,
                         env::var("USER").unwrap_or_else(|_| String::from("error"))));
                     continue;
                 }
-                segments.push(Segment::new(bg, fg, match shell {
+                p.segments.push(Segment::new(bg, fg, match shell {
                     Shell::Bare => unreachable!(),
                     Shell::Bash => "\\u",
                     Shell::Zsh  => "%n"
                 }).dont_escape());
             },
             Module::Root => {
-                let (mut bg, mut fg) = (theme.cmd_passed_bg, theme.cmd_passed_fg);
+                let (mut bg, mut fg) = (p.theme.cmd_passed_bg, p.theme.cmd_passed_fg);
                 if error != 0 {
-                    bg = theme.cmd_failed_bg;
-                    fg = theme.cmd_failed_fg;
+                    bg = p.theme.cmd_failed_bg;
+                    fg = p.theme.cmd_failed_fg;
                 }
-                segments.push(Segment::new(bg, fg, root(shell)).dont_escape());
+                p.segments.push(Segment::new(bg, fg, root(shell)).dont_escape());
             },
         }
     }
@@ -215,9 +221,9 @@ fn main() {
     #[cfg(feature = "flame")]
     flame::start("print");
 
-    for i in 0..segments.len() {
-        segments[i].escape(shell);
-        segments[i].print(segments.get(i+1), shell, &theme);
+    for i in 0..p.segments.len() {
+        p.segments[i].escape(shell);
+        p.segments[i].print(p.segments.get(i+1), shell, &p.theme);
     }
 
     if matches.is_present("newline") {

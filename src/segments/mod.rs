@@ -6,3 +6,74 @@ pub use self::segment_ps::*;
 
 #[cfg(feature = "git2")] pub mod segment_git;
 #[cfg(feature = "git2")] pub use self::segment_git::*;
+
+use Shell;
+use format::*;
+use std::borrow::Cow;
+use theme::Theme;
+
+pub struct Segment {
+    bg: u8,
+    fg: u8,
+
+    before: &'static str,
+    after: &'static str,
+    conditional: bool,
+
+    escaped: bool,
+    text: Cow<'static, str>
+}
+impl Segment {
+    pub fn new<S>(bg: u8, fg: u8, text: S) -> Self
+        where S: Into<Cow<'static, str>>
+    {
+        Segment {
+            bg:    bg,
+            fg:    fg,
+
+            before: "",
+            after: "",
+            conditional: false,
+
+            escaped: false,
+            text:  text.into()
+        }
+    }
+    pub fn dont_escape(mut self) -> Self {
+        self.escaped = true;
+        self
+    }
+    pub fn with_before(mut self, before: &'static str) -> Self {
+        self.before = before;
+        self
+    }
+    pub fn with_after(mut self, after: &'static str) -> Self {
+        self.after = after;
+        self
+    }
+    pub fn as_conditional(mut self) -> Self {
+        self.conditional = true;
+        self
+    }
+    pub fn is_conditional(&self) -> bool {
+        self.conditional
+    }
+    pub fn escape(&mut self, shell: Shell) {
+        if self.escaped {
+            return;
+        }
+        escape(shell, self.text.to_mut());
+        self.escaped = true;
+    }
+    pub fn print(&self, next: Option<&Segment>, shell: Shell, theme: &Theme) {
+        print!("{}{}{} {} ", self.before, Fg(shell, self.fg), Bg(shell, self.bg), self.text);
+        match next {
+            Some(next) if next.is_conditional() => {},
+            Some(next) if next.bg == self.bg => print!("{}", Fg(shell, theme.separator_fg)),
+            Some(next) => print!("{}{}",  Fg(shell, self.bg), Bg(shell, next.bg)),
+            // Last tile resets colors
+            None       => print!("{}{}{}",Fg(shell, self.bg), Reset(shell, false), Reset(shell, true))
+        }
+        print!("{}", self.after);
+    }
+}

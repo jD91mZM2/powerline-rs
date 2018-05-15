@@ -1,12 +1,48 @@
+#[cfg(feature = "flame")] use flame;
+use {Powerline, Segment};
 use git2::{self, BranchType, ObjectType, Repository, StatusOptions, StatusShow};
-use segment::Segment;
-use theme::Theme;
 
-pub fn segment_git(segments: &mut Vec<Segment>, theme: &Theme, git: &Option<Repository>) {
+fn discover_if_none(git: &mut Option<Repository>) -> bool {
+    #[cfg(feature = "flame")]
+    let _guard = flame::start_guard("git discover");
+
     if git.is_none() {
+        *git = Repository::discover(".").ok();
+        git.is_some()
+    } else { true }
+}
+fn statuses_if_none(git: &Repository, statuses: &mut Option<Vec<git2::Status>>) -> bool {
+    #[cfg(feature = "flame")]
+    let _guard = flame::start_guard("git status");
+
+    if statuses.is_none() {
+        *statuses = git.statuses(Some(
+                StatusOptions::new()
+                    .show(StatusShow::IndexAndWorkdir)
+                    .include_untracked(true)
+                    .renames_from_rewrites(true)
+                    .renames_head_to_index(true)
+            ))
+            .ok()
+            .map(|statuses|
+                statuses.iter()
+                .map(|entry| entry.status())
+                .collect());
+        statuses.is_some()
+    } else { true }
+}
+
+pub fn segment_git(p: &mut Powerline) {
+    #[cfg(feature = "flame")]
+    let _guard = flame::start_guard("segment git");
+
+    if !discover_if_none(&mut p.git) {
         return;
     }
-    let git = git.as_ref().unwrap();
+    let git = p.git.as_ref().unwrap();
+
+    #[cfg(feature = "flame")]
+    flame::start("iter branches");
 
     let branches = git.branches(Some(BranchType::Local));
     if branches.is_err() {
@@ -33,7 +69,13 @@ pub fn segment_git(segments: &mut Vec<Segment>, theme: &Theme, git: &Option<Repo
         }
     }
 
+    #[cfg(feature = "flame")]
+    flame::end("iter branches");
+
     if branch_name.is_none() {
+        #[cfg(feature = "flame")]
+        let _guard = flame::start_guard("search head");
+
         // Could be a detached head
         if let Ok(head) = git.head() {
             if let Some(target) = head.target() {
@@ -44,26 +86,25 @@ pub fn segment_git(segments: &mut Vec<Segment>, theme: &Theme, git: &Option<Repo
                                                 .map(|s| s.to_string()))
             }
         } else {
-            segments.push(Segment::new(theme.git_dirty_bg, theme.git_dirty_fg, "Big Bang"));
+            p.segments.push(Segment::new(p.theme.git_dirty_bg, p.theme.git_dirty_fg, "Big Bang"));
             return;
         }
     }
 
-    let statuses = git.statuses(Some(
-        StatusOptions::new()
-            .show(StatusShow::IndexAndWorkdir)
-            .include_untracked(true)
-    ));
-    if statuses.is_err() {
+    if !statuses_if_none(git, &mut p.git_statuses) {
         return;
     }
+    let statuses = p.git_statuses.as_ref().unwrap();
 
-    let (mut bg, mut fg) = (theme.git_dirty_bg, theme.git_dirty_fg);
-    if statuses.unwrap().is_empty() {
-        bg = theme.git_clean_bg;
-        fg = theme.git_clean_fg;
+    let (mut bg, mut fg) = (p.theme.git_dirty_bg, p.theme.git_dirty_fg);
+    if statuses.is_empty() {
+        bg = p.theme.git_clean_bg;
+        fg = p.theme.git_clean_fg;
     }
-    segments.push(Segment::new(bg, fg, branch_name.unwrap()));
+    p.segments.push(Segment::new(bg, fg, branch_name.unwrap()));
+
+    #[cfg(feature = "flame")]
+    let _guard = flame::start_guard("checking remotes");
 
     if let Some(local) = local {
         if let Some(upstream) = upstream {
@@ -71,43 +112,41 @@ pub fn segment_git(segments: &mut Vec<Segment>, theme: &Theme, git: &Option<Repo
                 if ahead > 0 {
                     let mut ahead = if ahead == 1 { String::new() } else { ahead.to_string() };
                     ahead.push('⬆');
-                    segments.push(Segment::new(theme.git_ahead_bg, theme.git_ahead_fg, ahead));
+                    p.segments.push(Segment::new(p.theme.git_ahead_bg, p.theme.git_ahead_fg, ahead));
                 }
 
                 if behind > 0 {
                     let mut behind = if behind == 1 { String::new() } else { behind.to_string() };
                     behind.push('⬇');
-                    segments.push(Segment::new(theme.git_behind_bg, theme.git_behind_fg, behind));
+                    p.segments.push(Segment::new(p.theme.git_behind_bg, p.theme.git_behind_fg, behind));
                 }
             }
         }
     }
 }
+pub fn segment_gitstage(p: &mut Powerline) {
+    #[cfg(feature = "flame")]
+    let _guard = flame::start_guard("segment gitstage");
 
-pub fn segment_gitstage(segments: &mut Vec<Segment>, theme: &Theme, git: &Option<Repository>) {
-    if git.is_none() {
+    if !discover_if_none(&mut p.git) {
         return;
     }
-    let git = git.as_ref().unwrap();
+    let git = p.git.as_ref().unwrap();
 
-    let statuses = git.statuses(Some(
-        StatusOptions::new()
-            .show(StatusShow::IndexAndWorkdir)
-            .include_untracked(true)
-            .renames_from_rewrites(true)
-            .renames_head_to_index(true)
-    ));
-    if statuses.is_err() {
+    if !statuses_if_none(git, &mut p.git_statuses) {
         return;
     }
+    let statuses = p.git_statuses.as_ref().unwrap();
+
+    #[cfg(feature = "flame")]
+    flame::start("counting");
 
     let mut staged = 0;
     let mut notstaged = 0;
     let mut untracked = 0;
     let mut conflicted = 0;
 
-    for status in statuses.unwrap().iter() {
-        let status = status.status();
+    for status in statuses {
         if status.contains(git2::STATUS_INDEX_NEW)
             || status.contains(git2::STATUS_INDEX_MODIFIED)
             || status.contains(git2::STATUS_INDEX_TYPECHANGE)
@@ -128,24 +167,27 @@ pub fn segment_gitstage(segments: &mut Vec<Segment>, theme: &Theme, git: &Option
         }
     }
 
+    #[cfg(feature = "flame")]
+    flame::end("counting");
+
     if staged > 0 {
         let mut string = if staged == 1 { String::with_capacity(1) } else { staged.to_string() };
         string.push('✔');
-        segments.push(Segment::new(theme.git_staged_bg, theme.git_staged_fg, string));
+        p.segments.push(Segment::new(p.theme.git_staged_bg, p.theme.git_staged_fg, string));
     }
     if notstaged > 0 {
         let mut string = if notstaged == 1 { String::with_capacity(1) } else { notstaged.to_string() };
         string.push('✎');
-        segments.push(Segment::new(theme.git_notstaged_bg, theme.git_notstaged_fg, string));
+        p.segments.push(Segment::new(p.theme.git_notstaged_bg, p.theme.git_notstaged_fg, string));
     }
     if untracked > 0 {
         let mut string = if untracked == 1 { String::with_capacity(1) } else { untracked.to_string() };
         string.push('+');
-        segments.push(Segment::new(theme.git_untracked_bg, theme.git_untracked_fg, string));
+        p.segments.push(Segment::new(p.theme.git_untracked_bg, p.theme.git_untracked_fg, string));
     }
     if conflicted > 0 {
         let mut string = if conflicted == 1 { String::with_capacity(1) } else { conflicted.to_string() };
         string.push('*');
-        segments.push(Segment::new(theme.git_conflicted_bg, theme.git_conflicted_fg, string));
+        p.segments.push(Segment::new(p.theme.git_conflicted_bg, p.theme.git_conflicted_fg, string));
     }
 }
