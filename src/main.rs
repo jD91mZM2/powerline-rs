@@ -23,6 +23,7 @@ use theme::Theme;
 #[derive(Clone, Copy, Eq, PartialEq)]
 pub enum Shell {
     Bare,
+    Ion,
     Bash,
     Zsh
 }
@@ -88,6 +89,7 @@ fn main() {
     let shell = match matches.value_of("shell").unwrap() {
         "bare" => Shell::Bare,
         "bash" => Shell::Bash,
+        "ion"  => Shell::Ion,
         "zsh"  => Shell::Zsh,
         _ => unreachable!()
     };
@@ -127,6 +129,7 @@ fn main() {
                 p.segments.push(Segment::new(bg, fg, match shell {
                     Shell::Bare => unreachable!(),
                     Shell::Bash => "\\h",
+                    Shell::Ion  => "\\h",
                     Shell::Zsh  => "%m"
                 }).dont_escape());
             },
@@ -137,6 +140,10 @@ fn main() {
                         Segment::new(p.theme.jobs_bg, p.theme.jobs_fg, "\\j")
                             .with_before(r#"$(test -n "$(jobs -p)" && echo -n ""#)
                             .with_after(r#"")"#),
+                    Shell::Ion  => 
+                        Segment::new(p.theme.jobs_bg, p.theme.jobs_fg, "\\j")
+                            .with_before(r#"$(test -n "$(jobs -p)" && echo -n ""#)
+                            .with_after(r#"")"#), 
                     Shell::Zsh =>
                         Segment::new(p.theme.jobs_bg, p.theme.jobs_fg, "%j")
                             .with_before("%(1j.")
@@ -177,6 +184,7 @@ fn main() {
                 p.segments.push(Segment::new(bg, fg, match shell {
                     Shell::Bare => unreachable!(),
                     Shell::Bash => "\\@",
+                    Shell::Ion  => "\\@",
                     Shell::Zsh  => "%@"
                 }).dont_escape())
             },
@@ -202,6 +210,7 @@ fn main() {
                 p.segments.push(Segment::new(bg, fg, match shell {
                     Shell::Bare => unreachable!(),
                     Shell::Bash => "\\u",
+                    Shell::Ion  => "\\u",
                     Shell::Zsh  => "%n"
                 }).dont_escape());
             },

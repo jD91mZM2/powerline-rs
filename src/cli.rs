@@ -48,7 +48,7 @@ pub fn build_cli() -> App<'static, 'static> {
                 .help("Set this to your shell type")
                 .takes_value(true)
                 .value_name("string")
-                .possible_values(&["bare", "bash", "zsh"])
+                .possible_values(&["bare", "bash", "zsh","ion"])
                 .default_value("bash")
         )
         .arg(
