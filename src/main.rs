@@ -80,7 +80,7 @@ fn main() {
 
     let mut p = Powerline {
         segments: Vec::with_capacity(16), // just a guess
-        theme: theme,
+        theme,
         shell: match matches.value_of("shell").unwrap() {
             "bare" => Shell::Bare,
             "bash" => Shell::Bash,

@@ -11,5 +11,5 @@ pub fn segment_jobs(p: &mut Powerline) {
             Segment::new(p.theme.jobs_bg, p.theme.jobs_fg, "%j")
                 .with_before("%(1j.")
                 .with_after(".)"),
-    }.as_conditional().dont_escape());
+    }.into_conditional().dont_escape());
 }

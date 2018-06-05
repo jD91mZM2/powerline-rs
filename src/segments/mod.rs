@@ -43,8 +43,8 @@ impl Segment {
         where S: Into<Cow<'static, str>>
     {
         Segment {
-            bg:    bg,
-            fg:    fg,
+            bg,
+            fg,
 
             before: "",
             after: "",
@@ -66,7 +66,7 @@ impl Segment {
         self.after = after;
         self
     }
-    pub fn as_conditional(mut self) -> Self {
+    pub fn into_conditional(mut self) -> Self {
         self.conditional = true;
         self
     }
