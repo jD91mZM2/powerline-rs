@@ -1,11 +1,26 @@
 pub mod segment_cwd;
+pub mod segment_host;
+pub mod segment_jobs;
 pub mod segment_ps;
+pub mod segment_root;
+pub mod segment_ssh;
+pub mod segment_time;
+pub mod segment_user;
 
 pub use self::segment_cwd::*;
+pub use self::segment_host::*;
+pub use self::segment_jobs::*;
 pub use self::segment_ps::*;
+pub use self::segment_root::*;
+pub use self::segment_ssh::*;
+pub use self::segment_time::*;
+pub use self::segment_user::*;
 
 #[cfg(feature = "git2")] pub mod segment_git;
 #[cfg(feature = "git2")] pub use self::segment_git::*;
+
+#[cfg(unix)] pub mod segment_perms;
+#[cfg(unix)] pub use self::segment_perms::*;
 
 use Shell;
 use format::*;

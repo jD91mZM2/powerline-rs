@@ -1,4 +1,4 @@
 with import <nixpkgs> {};
 pkgs.powerline-rs.overrideAttrs(old: {
-  buildInputs = lib.remove pkgs.rustc old.buildInputs;
+  buildInputs = lib.filter (pkg: pkg != pkgs.rustc && pkg != pkgs.cargo) old.buildInputs;
 })

@@ -2,13 +2,18 @@ use {Powerline, Segment};
 use std::{
     fmt::Write,
     fs,
+    os::raw::c_int,
     path::Path
 };
 
 const PROC_STAT_PID: usize = 6; // 0-based, 7th word
 
+extern "C" {
+    fn getpid() -> c_int; // std::process::id() is unstable
+}
+
 pub fn segment_ps(p: &mut Powerline) {
-    let pid = unsafe { ::getpid() };
+    let pid = unsafe { getpid() };
     let tty = {
         let mut path = String::with_capacity(6 + 4 + 5); // 4 = reserved pid length
         path.push_str("/proc/");
