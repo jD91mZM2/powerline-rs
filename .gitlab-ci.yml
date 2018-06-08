@@ -15,7 +15,7 @@ image: "rust:latest"
 # You will often need this when you (or any of your dependencies) depends on C code.
 before_script:
 - apt-get update -yqq
-- apt-get install -yqq --no-install-recommends build-essential gcc cmake libgit2-dev libssh2-dev
+- apt-get install -yqq --no-install-recommends build-essential gcc cmake libgit2-dev libssh2-1-dev
 
 # Use cargo to test the project
 test:cargo:
