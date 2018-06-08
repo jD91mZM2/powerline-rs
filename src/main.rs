@@ -102,7 +102,7 @@ fn main() {
             Module::Ps => segments::segment_ps(&mut p),
             Module::Host => segments::segment_host(&mut p),
             Module::Jobs => segments::segment_jobs(&mut p),
-            Module::Perms => { #[cfg(unix)] segments::segment_perms(&mut p) },
+            Module::Perms => { segments::segment_perms(&mut p) },
             Module::Ssh => segments::segment_ssh(&mut p),
             Module::Time => segments::segment_time(&mut p),
             Module::User => segments::segment_user(&mut p),

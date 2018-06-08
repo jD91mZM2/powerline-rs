@@ -1,12 +1,12 @@
 use std::{
     borrow::Cow,
     os::raw::{c_char, c_int},
-    str,
+    str
 };
 use {Powerline, Segment, Shell};
 
 extern "C" {
-    fn gethostname(out: *mut c_char, len: usize) -> c_int;
+    fn gethostname(buf: *mut c_char, len: usize) -> c_int;
 }
 
 pub fn segment_host(p: &mut Powerline) {
