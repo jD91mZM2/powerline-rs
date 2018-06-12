@@ -17,10 +17,8 @@ pub fn segment_host(p: &mut Powerline) {
         let mut name = [0u8; 256];
         let mut string = Cow::from("error");
         if unsafe { gethostname(&mut name[0] as *mut _ as *mut c_char, name.len()) } == 0 {
-            let mut len = 0;
-            while name[len] != 0 {
-                len += 1;
-            }
+            let len = name.iter().position(|i| *i == 0).unwrap_or(name.len());
+
             if let Ok(name) = str::from_utf8(&name[..len]) {
                 string = Cow::from(String::from(name));
             }
