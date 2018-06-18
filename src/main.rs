@@ -2,6 +2,7 @@
 #[macro_use] extern crate clap;
 #[cfg(feature = "git2")] extern crate git2;
 #[cfg(feature = "flame")] extern crate flame;
+extern crate users;
 
 mod cli;
 mod format;
