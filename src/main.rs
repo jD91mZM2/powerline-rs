@@ -107,6 +107,7 @@ fn main() {
             Module::Ssh => segments::segment_ssh(&mut p),
             Module::Time => segments::segment_time(&mut p),
             Module::User => segments::segment_user(&mut p),
+            Module::VirtualEnv => segments::segment_virtualenv(&mut p),
             Module::Root => segments::segment_root(&mut p, error),
         }
     }

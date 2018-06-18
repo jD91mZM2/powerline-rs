@@ -11,7 +11,8 @@ pub const ALL: &[&str] = &[
     "root",
     "ssh",
     "time",
-    "user"
+    "user",
+    "virtualenv",
 ];
 
 #[derive(PartialEq, Eq)]
@@ -26,7 +27,8 @@ pub enum Module {
     Root,
     Ssh,
     Time,
-    User
+    User,
+    VirtualEnv,
 }
 
 impl FromStr for Module {
@@ -44,6 +46,7 @@ impl FromStr for Module {
             "ssh"      => Ok(Module::Ssh),
             "time"     => Ok(Module::Time),
             "user"     => Ok(Module::User),
+            "virtualenv" => Ok(Module::VirtualEnv),
             _          => Err(())
         }
     }

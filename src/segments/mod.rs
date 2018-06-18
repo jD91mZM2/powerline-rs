@@ -7,6 +7,7 @@ pub mod segment_root;
 pub mod segment_ssh;
 pub mod segment_time;
 pub mod segment_user;
+pub mod segment_virtualenv;
 
 pub use self::segment_cwd::*;
 pub use self::segment_host::*;
@@ -17,6 +18,7 @@ pub use self::segment_root::*;
 pub use self::segment_ssh::*;
 pub use self::segment_time::*;
 pub use self::segment_user::*;
+pub use self::segment_virtualenv::*;
 
 #[cfg(feature = "git2")] pub mod segment_git;
 #[cfg(feature = "git2")] pub use self::segment_git::*;

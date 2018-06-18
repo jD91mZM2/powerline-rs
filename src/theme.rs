@@ -49,7 +49,10 @@ pub struct Theme {
     pub cmd_failed_fg: u8,
 
     pub ps_bg: u8,
-    pub ps_fg: u8
+    pub ps_fg: u8,
+
+    pub virtual_env_bg: u8,
+    pub virtual_env_fg: u8,
 }
 
 pub const DEFAULT: Theme = Theme {
@@ -101,7 +104,10 @@ pub const DEFAULT: Theme = Theme {
     cmd_passed_bg: 236,
     cmd_passed_fg: 15,
     cmd_failed_bg: 161,
-    cmd_failed_fg: 15
+    cmd_failed_fg: 15,
+
+    virtual_env_bg: 35,
+    virtual_env_fg: 0,
 };
 
 use std::error::Error as StdError;
@@ -191,6 +197,9 @@ fn theme_index<'a>(theme: &'a mut Theme, name: &str) -> Option<&'a mut u8> {
         "cmd_passed_fg" => Some(&mut theme.cmd_passed_fg),
         "cmd_failed_bg" => Some(&mut theme.cmd_failed_bg),
         "cmd_failed_fg" => Some(&mut theme.cmd_failed_fg),
+
+        "virtual_env_bg" => Some(&mut theme.virtual_env_bg),
+        "virtual_env_fg" => Some(&mut theme.virtual_env_fg),
 
         _ => None
     }
