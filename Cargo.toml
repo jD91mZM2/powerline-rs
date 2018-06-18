@@ -12,6 +12,7 @@ clap = "2.29.2"
 
 [dependencies]
 clap = "2.29.2"
+users = "0.7.0"
 
 [dependencies.chrono]
 optional = true
