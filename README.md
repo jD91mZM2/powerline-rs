@@ -10,11 +10,11 @@ The Rust language is perfect for fast applications, since copying large structur
 
 ## How to install
 
-Easiest way to install is with the [Arch Linux AUR](https://aur.archlinux.org/packages/powerline-rs/).  
-If you don't use Arch Linux, you could do it with `cargo`:  
 ```
 cargo install powerline-rs
 ```
+
+It's also available on Nix and the [AUR (not officially maintained)](https://aur.archlinux.org/packages/powerline-rs/).
 
 In order to use optional features, add something like `--features "feature1,feature2,etc"` to the end of the command.  
 To disable default features, add `--no-default-features` (and manually readd features you want to keep).  
