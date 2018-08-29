@@ -65,6 +65,15 @@ prompt() {
 PROMPT_COMMAND=prompt
 ```
 
+## Zsh
+
+```Zsh
+prompt() {
+    PS1="$(powerline-rs --shell zsh $?)"
+}
+precmd_functions+=(prompt)
+```
+
 ## Fish
 
 ```Fish
@@ -73,11 +82,15 @@ function fish_prompt
 end
 ```
 
-## Zsh
+## Ion
 
-```Zsh
-prompt() {
-    PS1="$(powerline-rs --shell zsh $?)"
-}
-precmd_functions+=(prompt)
+*We can't display the success status because ion now forbids the use `$?` from
+functions as a bi-product of the new [namespacing
+system](https://gitlab.redox-os.org/redox-os/ion/merge_requests/807). This will
+of course eventually be resolved.*
+
+```Ion
+fn PROMPT
+    powerline-rs --shell bare
+end
 ```
