@@ -1,8 +1,9 @@
 #[cfg(feature = "chrono")] extern crate chrono;
-#[macro_use] extern crate clap;
-#[cfg(feature = "git2")] extern crate git2;
 #[cfg(feature = "flame")] extern crate flame;
-extern crate users;
+#[cfg(feature = "git2")] extern crate git2;
+#[cfg(feature = "users")] extern crate users;
+#[macro_use] extern crate clap;
+extern crate dirs;
 
 mod cli;
 mod format;

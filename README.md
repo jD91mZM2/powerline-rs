@@ -27,6 +27,7 @@ Default features:
 
 - chrono (Time support for --shell bare)
 - git2 (Git support)
+- users (Username support)
 
 Then add the following code to your shell:  
 [Bash](#bash)  
