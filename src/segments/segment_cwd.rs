@@ -57,10 +57,10 @@ pub fn segment(p: &mut Powerline, name: &OsStr, last: bool, cwd_max_dir_size: u8
     let cwd_max_dir_size = cwd_max_dir_size as usize;
     if cwd_max_dir_size > 0 && name.chars().count() > cwd_max_dir_size {
         let mut start = 0;
-        for c in name.chars().take(name.chars().count() - cwd_max_dir_size) {
+        for c in name.chars().take(cwd_max_dir_size) {
             start += c.len_utf8();
         }
-        name.drain(..start);
+        name.drain(start..);
         name.push('…');
     }
 
