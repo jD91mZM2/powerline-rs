@@ -1,6 +1,6 @@
 #[cfg(feature = "flame")] use flame;
 use {Powerline, Segment};
-use git2::{self, BranchType, ObjectType, Repository, StatusOptions, StatusShow};
+use git2::{BranchType, ObjectType, Repository, Status, StatusOptions, StatusShow};
 
 fn discover_if_none(git: &mut Option<Repository>) -> bool {
     #[cfg(feature = "flame")]
@@ -11,7 +11,7 @@ fn discover_if_none(git: &mut Option<Repository>) -> bool {
         git.is_some()
     } else { true }
 }
-fn statuses_if_none(git: &Repository, statuses: &mut Option<Vec<git2::Status>>) -> bool {
+fn statuses_if_none(git: &Repository, statuses: &mut Option<Vec<Status>>) -> bool {
     #[cfg(feature = "flame")]
     let _guard = flame::start_guard("git status");
 
@@ -147,22 +147,22 @@ pub fn segment_gitstage(p: &mut Powerline) {
     let mut conflicted = 0;
 
     for status in statuses {
-        if status.contains(git2::STATUS_INDEX_NEW)
-            || status.contains(git2::STATUS_INDEX_MODIFIED)
-            || status.contains(git2::STATUS_INDEX_TYPECHANGE)
-            || status.contains(git2::STATUS_INDEX_RENAMED)
-            || status.contains(git2::STATUS_INDEX_DELETED) {
+        if status.contains(Status::INDEX_NEW)
+            || status.contains(Status::INDEX_MODIFIED)
+            || status.contains(Status::INDEX_TYPECHANGE)
+            || status.contains(Status::INDEX_RENAMED)
+            || status.contains(Status::INDEX_DELETED) {
             staged += 1;
         }
-        if status.contains(git2::STATUS_WT_MODIFIED)
-            || status.contains(git2::STATUS_WT_TYPECHANGE)
-            || status.contains(git2::STATUS_WT_DELETED) {
+        if status.contains(Status::WT_MODIFIED)
+            || status.contains(Status::WT_TYPECHANGE)
+            || status.contains(Status::WT_DELETED) {
             notstaged += 1;
         }
-        if status.contains(git2::STATUS_WT_NEW) {
+        if status.contains(Status::WT_NEW) {
             untracked += 1;
         }
-        if status.contains(git2::STATUS_CONFLICTED) {
+        if status.contains(Status::CONFLICTED) {
             conflicted += 1;
         }
     }

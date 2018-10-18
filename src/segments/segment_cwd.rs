@@ -36,7 +36,7 @@ pub fn segment_cwd(p: &mut Powerline, cwd_max_depth: u8, cwd_max_dir_size: u8) {
             // the exact same outcome.
         }
     }
-    if length > cwd_max_depth {
+    if cwd_max_depth > 0 && length > cwd_max_depth {
         p.segments.push(Segment::new(p.theme.path_bg, p.theme.path_fg, Cow::from("…")));
 
         for _ in 0..length - cwd_max_depth {

@@ -5,30 +5,29 @@ license-file = "LICENSE"
 name = "powerline-rs"
 readme = "README.md"
 repository = "https://github.com/jD91mZM2/powerline-rs"
-version = "0.1.8"
-
+version = "0.1.9"
 [build-dependencies]
-clap = "2.29.2"
+clap = "2.32.0"
 
 [dependencies]
-clap = "2.29.2"
-dirs = "1.0.3"
+clap = "2.32.0"
+dirs = "1.0.4"
 
 [dependencies.chrono]
 optional = true
-version = "0.4.0"
+version = "0.4.6"
 
 [dependencies.flame]
 optional = true
-version = "0.2.0"
+version = "0.2.2"
 
 [dependencies.git2]
 optional = true
-version = "0.6.11"
+version = "0.7.5"
 
 [dependencies.users]
 optional = true
-version = "0.7.0"
+version = "0.8.0"
 
 [features]
 default = ["chrono", "git2", "users"]

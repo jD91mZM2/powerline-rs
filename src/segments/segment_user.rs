@@ -23,7 +23,11 @@ pub fn segment_user(p: &mut Powerline) {
                 { Cow::from("error") }
                 #[cfg(feature = "users")]
                 { if let Some(user) = users::get_user_by_uid(uid) {
-                    Cow::from(String::from(user.name()))
+                    if let Some(name) = user.name().to_str() {
+                        Cow::from(String::from(name))
+                    } else {
+                        Cow::from("error")
+                    }
                 } else {
                     Cow::from("error")
                 } }
