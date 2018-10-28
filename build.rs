@@ -8,7 +8,7 @@ use clap::Shell;
 use std::{fs, env};
 
 fn main() {
-    let dir = env::var("OUT_DIR").expect("cargo didn't set $OUT_DIR");
+    let dir = env::var("COMPLETION_OUT").or_else(|_| env::var("OUT_DIR")).expect("cargo didn't set $OUT_DIR");
     fs::create_dir_all(&dir).expect("failed to create directories");
 
     let mut app = cli::build_cli();
