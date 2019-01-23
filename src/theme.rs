@@ -23,8 +23,12 @@ pub struct Theme {
     pub ssh_bg: u8,
     pub ssh_fg: u8,
 
+    pub ssh_char: char,
+
     pub ro_bg: u8,
     pub ro_fg: u8,
+
+    pub ro_char: char,
 
     pub git_clean_bg: u8,
     pub git_clean_fg: u8,
@@ -42,6 +46,13 @@ pub struct Theme {
     pub git_staged_fg:    u8,
     pub git_untracked_bg: u8,
     pub git_untracked_fg: u8,
+
+    pub git_ahead_char: char,
+    pub git_behind_char: char,
+    pub git_staged_char: char,
+    pub git_notstaged_char: char,
+    pub git_untracked_char: char,
+    pub git_conflicted_char: char,
 
     pub cmd_passed_bg: u8,
     pub cmd_passed_fg: u8,
@@ -81,8 +92,12 @@ pub const DEFAULT: Theme = Theme {
     ssh_bg: 166,
     ssh_fg: 254,
 
+    ssh_char: '',
+
     ro_bg: 124,
     ro_fg: 254,
+
+    ro_char: '',
 
     git_clean_bg: 148,
     git_clean_fg: 0,
@@ -100,6 +115,13 @@ pub const DEFAULT: Theme = Theme {
     git_staged_fg: 15,
     git_untracked_bg: 52,
     git_untracked_fg: 15,
+
+    git_ahead_char: '⬆',
+    git_behind_char: '⬇',
+    git_staged_char: '✔',
+    git_notstaged_char: '✎',
+    git_untracked_char: '+',
+    git_conflicted_char: '*',
 
     cmd_passed_bg: 236,
     cmd_passed_fg: 15,
@@ -141,14 +163,25 @@ pub fn load(file: &str) -> Result<Theme, Box<StdError>> {
         let variable = parts.next().map(|inner| inner.trim()).ok_or_else(|| ErrCorrupt)?;
         let value    = parts.next().map(|inner| inner.trim()).ok_or_else(|| ErrCorrupt)?;
 
-        let index = theme_index(&mut theme, variable).ok_or_else(|| ErrCorrupt)?;
-
-        *index = value.parse()?;
+        if variable.ends_with("char") {
+            let index = theme_index_char(&mut theme, variable).ok_or_else(|| ErrCorrupt)?;
+            
+            if value.chars().count() == 1 {
+                *index = value.parse()?;
+            } else {
+                let codepoint = u32::from_str_radix(value, 16)?;
+                *index = std::char::from_u32(codepoint).ok_or_else(|| ErrCorrupt)?;
+            }
+        } else {
+            let index = theme_index_u8(&mut theme, variable).ok_or_else(|| ErrCorrupt)?;
+            *index = value.parse()?;
+        }
     }
 
     Ok(theme)
 }
-fn theme_index<'a>(theme: &'a mut Theme, name: &str) -> Option<&'a mut u8> {
+
+fn theme_index_u8<'a>(theme: &'a mut Theme, name: &str) -> Option<&'a mut u8> {
     match name {
         "separator_fg" => Some(&mut theme.separator_fg),
 
@@ -200,6 +233,19 @@ fn theme_index<'a>(theme: &'a mut Theme, name: &str) -> Option<&'a mut u8> {
 
         "virtual_env_bg" => Some(&mut theme.virtual_env_bg),
         "virtual_env_fg" => Some(&mut theme.virtual_env_fg),
+
+        _ => None
+    }
+}
+
+fn theme_index_char<'a>(theme: &'a mut Theme, name: &str) -> Option<&'a mut char> {
+    match name {
+        "git_ahead_char" => Some(&mut theme.git_ahead_char),
+        "git_behind_char" => Some(&mut theme.git_behind_char),
+        "git_staged_char" => Some(&mut theme.git_staged_char),
+        "git_notstaged_char" => Some(&mut theme.git_notstaged_char),
+        "git_untracked_char" => Some(&mut theme.git_untracked_char),
+        "git_conflicted_char" => Some(&mut theme.git_conflicted_char),
 
         _ => None
     }
