@@ -2,6 +2,16 @@
 
 `powerline-rs` is a rewrite of [powerline-shell](https://github.com/b-ryan/powerline-shell), inspired by [powerline-go](https://github.com/justjanne/powerline-go).
 
+**Note:** powerline-rs is in *somewhat* of a maintenance mode. I'll try to make
+time to fix bugs and add new features, but the code is messy and I will not be
+fixing it any time soon unfortunately. It *could* be reworked to be more
+generic and maybe read a config file for the prompt, since it's still going to
+be very fast thanks to rust. But I'm not going to implement that. Not now, at
+least.
+
+*That said,* I still use this for my own prompt and will probably never stop, so
+don't worry it's definitely not a dead project.
+
 ## Why?
 
 Speed! I haven't done any extensive benchmarks, but it appears like

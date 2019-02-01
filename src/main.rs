@@ -101,15 +101,16 @@ fn main() {
             Module::Cwd => segments::segment_cwd(&mut p, cwd_max_depth, cwd_max_dir_size),
             Module::Git => { #[cfg(feature = "git2")] segments::segment_git(&mut p) },
             Module::GitStage => { #[cfg(feature = "git2")] segments::segment_gitstage(&mut p) },
-            Module::Ps => segments::segment_ps(&mut p),
             Module::Host => segments::segment_host(&mut p),
             Module::Jobs => segments::segment_jobs(&mut p),
-            Module::Perms => { segments::segment_perms(&mut p) },
+            Module::NixShell => segments::segment_nix(&mut p),
+            Module::Perms => segments::segment_perms(&mut p),
+            Module::Ps => segments::segment_ps(&mut p),
+            Module::Root => segments::segment_root(&mut p, error),
             Module::Ssh => segments::segment_ssh(&mut p),
             Module::Time => segments::segment_time(&mut p),
             Module::User => segments::segment_user(&mut p),
             Module::VirtualEnv => segments::segment_virtualenv(&mut p),
-            Module::Root => segments::segment_root(&mut p, error),
         }
     }
 

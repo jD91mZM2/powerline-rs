@@ -64,6 +64,9 @@ pub struct Theme {
 
     pub virtual_env_bg: u8,
     pub virtual_env_fg: u8,
+
+    pub nixshell_bg: u8,
+    pub nixshell_fg: u8,
 }
 
 pub const DEFAULT: Theme = Theme {
@@ -130,6 +133,9 @@ pub const DEFAULT: Theme = Theme {
 
     virtual_env_bg: 35,
     virtual_env_fg: 0,
+
+    nixshell_bg: 237,
+    nixshell_fg: 130,
 };
 
 use std::error::Error as StdError;
@@ -233,6 +239,9 @@ fn theme_index_u8<'a>(theme: &'a mut Theme, name: &str) -> Option<&'a mut u8> {
 
         "virtual_env_bg" => Some(&mut theme.virtual_env_bg),
         "virtual_env_fg" => Some(&mut theme.virtual_env_fg),
+
+        "nixshell_bg" => Some(&mut theme.nixshell_bg),
+        "nixshell_fg" => Some(&mut theme.nixshell_fg),
 
         _ => None
     }
