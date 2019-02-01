@@ -111,13 +111,13 @@ pub fn segment_git(p: &mut Powerline) {
             if let Ok((ahead, behind)) = git.graph_ahead_behind(local, upstream) {
                 if ahead > 0 {
                     let mut ahead = if ahead == 1 { String::new() } else { ahead.to_string() };
-                    ahead.push('⬆');
+                    ahead.push(p.theme.git_ahead_char);
                     p.segments.push(Segment::new(p.theme.git_ahead_bg, p.theme.git_ahead_fg, ahead));
                 }
 
                 if behind > 0 {
                     let mut behind = if behind == 1 { String::new() } else { behind.to_string() };
-                    behind.push('⬇');
+                    behind.push(p.theme.git_behind_char);
                     p.segments.push(Segment::new(p.theme.git_behind_bg, p.theme.git_behind_fg, behind));
                 }
             }
@@ -172,22 +172,22 @@ pub fn segment_gitstage(p: &mut Powerline) {
 
     if staged > 0 {
         let mut string = if staged == 1 { String::with_capacity(1) } else { staged.to_string() };
-        string.push('✔');
+        string.push(p.theme.git_staged_char);
         p.segments.push(Segment::new(p.theme.git_staged_bg, p.theme.git_staged_fg, string));
     }
     if notstaged > 0 {
         let mut string = if notstaged == 1 { String::with_capacity(1) } else { notstaged.to_string() };
-        string.push('✎');
+        string.push(p.theme.git_notstaged_char);
         p.segments.push(Segment::new(p.theme.git_notstaged_bg, p.theme.git_notstaged_fg, string));
     }
     if untracked > 0 {
         let mut string = if untracked == 1 { String::with_capacity(1) } else { untracked.to_string() };
-        string.push('+');
+        string.push(p.theme.git_untracked_char);
         p.segments.push(Segment::new(p.theme.git_untracked_bg, p.theme.git_untracked_fg, string));
     }
     if conflicted > 0 {
         let mut string = if conflicted == 1 { String::with_capacity(1) } else { conflicted.to_string() };
-        string.push('*');
+        string.push(p.theme.git_conflicted_char);
         p.segments.push(Segment::new(p.theme.git_conflicted_bg, p.theme.git_conflicted_fg, string));
     }
 }
