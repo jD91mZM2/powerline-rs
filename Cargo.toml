@@ -24,6 +24,7 @@ version = "0.2.2"
 [dependencies.git2]
 optional = true
 version = "0.7.5"
+default-features = false
 
 [dependencies.users]
 optional = true
