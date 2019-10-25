@@ -1,0 +1,116 @@
+* powerline-rs
+=powerline-rs= is a rewrite of [[https://github.com/b-ryan/powerline-shell][powerline-shell]], inspired by
+[[https://github.com/justjanne/powerline-go][powerline-go]].
+
+*Note:* powerline-rs is in /somewhat/ of a maintenance mode. I'll try
+to make time to fix bugs and add new features, but the code is messy
+and I will not be fixing it any time soon unfortunately. It /could/ be
+reworked to be more generic and maybe read a config file for the
+prompt, since it's still going to be very fast thanks to rust. But I'm
+not going to implement that. Not now, at least.
+
+/That said,/ I still use this for my own prompt and will probably
+never stop, so don't worry it's definitely not a dead project.
+
+** Why?
+Speed! I haven't done any extensive benchmarks, but it appears like
+even the debug version of =powerline-rs= is about 20 milliseconds
+faster than =powerline-go=. The Rust language is perfect for fast
+applications, since copying large structures isn't implicit.
+
+** How to install
+I strongly recommend installing powerline-rs using the [[https://nixos.org/nix/][Nix package
+manager]], which will get you all the required native dependencies by
+default.
+
+#+BEGIN_SRC sh
+  nix-env -iA powerline-rs
+#+END_SRC
+
+If you'd prefer the absolutely latest git version, you can use this
+instead:
+
+#+BEGIN_SRC sh
+  nix-env -if https://gitlab.com/jD91mZM2/powerline-rs/-/archive/master.tar.gz
+#+END_SRC
+
+Then add the following code to your shell:
+- [[#bash][Bash]]
+- [[#fish][Fish]]
+- [[#ion][Ion]]
+- [[#zsh][Zsh]]
+
+*** Other installation options
+You can also install powerline-rs from an [[https://aur.archlinux.org/packages/powerline-rs/][unofficial AUR package]].
+
+Using other installation options you'll unfortunately have to fetch
+all native dependencies yourself. I've tried to guess which
+dependencies most users will need to install to build this, feel free
+to update the following matrix if it proves outdated.
+
+| Configuration         | Native dependencies | Description                                       |
+|-----------------------+---------------------+---------------------------------------------------|
+| Default               | All of the below    |                                                   |
+| --no-default-features | None of the below   |                                                   |
+| --features chrono     | None                | Add time support for `--shell bare`               |
+| --features flame      | None                | Adds some performance benchmarks. Don't use this. |
+| --features git2       | libgit2, libzip     | Add git support                                   |
+| --features users      | None                | Add username support for `--shell bare`           |
+
+You'll also need Rust, obviously. After that you can install
+powerline-rs via cargo.
+
+#+BEGIN_SRC sh
+  cargo install powerline-rs
+#+END_SRC
+
+** What's new?
+Well, the default modules have changed to not include the username and
+hostname. I feel like most people already know theirs. But you can
+always enable it, of course!
+** What's optimized?
+- Generally just using Rust.
+- Using =libgit2= over calling and parsing =git= output (Thanks [[https://github.com/tbodt][tbodt]]
+  for suggesting it!)
+- =libgit2= can be disabled at compile time if you don't plan on using
+  git functionality.
+- Themes are using a simple small =key=value= scripts. No JSON
+  overhead or similar.
+- The output of =powerline-rs= is slightly smaller than the 2
+  alternatives I mentioned. To be honest, I have no idea why.
+** What's removed?
+Most of the service-specific modules are deleted. I am very lazy.
+Pull requests are welcome, though.
+
+Also, the =jobs= module won't work with =--shell bare=.
+* Add it to your shell
+** Bash
+#+BEGIN_SRC sh
+  prompt() {
+      PS1="$(powerline-rs --shell bash $?)"
+  }
+  PROMPT_COMMAND=prompt
+#+END_SRC
+** Zsh
+#+BEGIN_SRC sh
+  prompt() {
+      PS1="$(powerline-rs --shell zsh $?)"
+  }
+  precmd_functions+=(prompt)
+#+END_SRC
+** Fish
+#+BEGIN_SRC sh
+  function fish_prompt
+      powerline-rs --shell bare $status
+  end
+#+END_SRC
+** Ion
+We can't display the success status because ion now forbids the use
+=$?= from functions as a bi-product of the new [[https://gitlab.redox-os.org/redox-os/ion/merge_requests/807][namespacing
+system]]. This will of course eventually be resolved.
+
+#+BEGIN_SRC sh
+  fn PROMPT
+      powerline-rs --shell bare
+  end
+#+END_SRC

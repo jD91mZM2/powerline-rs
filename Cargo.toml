@@ -6,6 +6,7 @@ name = "powerline-rs"
 readme = "README.md"
 repository = "https://github.com/jD91mZM2/powerline-rs"
 version = "0.1.9"
+
 [build-dependencies]
 clap = "2.32.0"
 
