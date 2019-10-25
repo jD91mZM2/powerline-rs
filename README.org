@@ -85,6 +85,10 @@ Pull requests are welcome, though.
 Also, the =jobs= module won't work with =--shell bare=.
 * Add it to your shell
 ** Bash
+:PROPERTIES:
+:CUSTOM_ID: bash
+:END:
+
 #+BEGIN_SRC sh
   prompt() {
       PS1="$(powerline-rs --shell bash $?)"
@@ -92,6 +96,10 @@ Also, the =jobs= module won't work with =--shell bare=.
   PROMPT_COMMAND=prompt
 #+END_SRC
 ** Zsh
+:PROPERTIES:
+:CUSTOM_ID: zsh
+:END:
+
 #+BEGIN_SRC sh
   prompt() {
       PS1="$(powerline-rs --shell zsh $?)"
@@ -99,12 +107,20 @@ Also, the =jobs= module won't work with =--shell bare=.
   precmd_functions+=(prompt)
 #+END_SRC
 ** Fish
+:PROPERTIES:
+:CUSTOM_ID: fish
+:END:
+
 #+BEGIN_SRC sh
   function fish_prompt
       powerline-rs --shell bare $status
   end
 #+END_SRC
 ** Ion
+:PROPERTIES:
+:CUSTOM_ID: ion
+:END:
+
 We can't display the success status because ion now forbids the use
 =$?= from functions as a bi-product of the new [[https://gitlab.redox-os.org/redox-os/ion/merge_requests/807][namespacing
 system]]. This will of course eventually be resolved.
