@@ -3,7 +3,7 @@ use std::{
     os::raw::{c_char, c_int},
     str
 };
-use {Powerline, Segment, Shell};
+use crate::{Powerline, Segment, Shell};
 
 extern "C" {
     fn gethostname(buf: *mut c_char, len: usize) -> c_int;

@@ -26,10 +26,10 @@ pub use self::segment_virtualenv::*;
 #[cfg(feature = "git2")] pub use self::segment_git::*;
 
 
-use Shell;
-use format::*;
+use crate::Shell;
+use crate::format::*;
 use std::borrow::Cow;
-use theme::Theme;
+use crate::theme::Theme;
 
 pub struct Segment {
     bg: u8,

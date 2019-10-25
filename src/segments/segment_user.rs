@@ -1,6 +1,5 @@
-#[cfg(feature = "users")] use users;
 use std::borrow::Cow;
-use {Powerline, Segment, Shell};
+use crate::{Powerline, Segment, Shell};
 
 pub fn segment_user(p: &mut Powerline) {
     let (bg, fg) = (p.theme.username_bg, p.theme.username_fg);

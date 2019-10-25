@@ -1,9 +1,9 @@
-use Shell;
+use crate::Shell;
 use std::fmt;
 
 pub struct Fg(pub Shell, pub u8);
 impl fmt::Display for Fg {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.0 {
             Shell::Bare => write!(f, "\x1b[38;5;{}m", self.1),
             Shell::Bash => write!(f, "\\[\\e[38;5;{}m\\]", self.1),
@@ -14,7 +14,7 @@ impl fmt::Display for Fg {
 
 pub struct Bg(pub Shell, pub u8);
 impl fmt::Display for Bg {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.0 {
             Shell::Bare => write!(f, "\x1b[48;5;{}m", self.1),
             Shell::Bash => write!(f, "\\[\\e[48;5;{}m\\]", self.1),
@@ -25,7 +25,7 @@ impl fmt::Display for Bg {
 
 pub struct Reset(pub Shell, pub bool);
 impl fmt::Display for Reset {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let reset = if self.1 { "3" } else { "4" };
         match self.0 {
             Shell::Bare => write!(f, "\x1b[{}9m", reset),

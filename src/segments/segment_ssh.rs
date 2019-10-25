@@ -1,5 +1,5 @@
 use std::env;
-use {Powerline, Segment};
+use crate::{Powerline, Segment};
 
 pub fn segment_ssh(p: &mut Powerline) {
     if env::var("SSH_CLIENT").is_ok() {

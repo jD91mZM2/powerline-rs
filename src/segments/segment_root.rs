@@ -1,4 +1,4 @@
-use {format, Powerline, Segment};
+use crate::{format, Powerline, Segment};
 
 pub fn segment_root(p: &mut Powerline, error: u8) {
     let (mut bg, mut fg) = (p.theme.cmd_passed_bg, p.theme.cmd_passed_fg);

@@ -1,5 +1,5 @@
 use std::{env, path};
-use {Powerline, Segment};
+use crate::{Powerline, Segment};
 
 pub fn segment_virtualenv(p: &mut Powerline) {
     if let Ok(Some(virtual_env_name)) = env::var("VIRTUAL_ENV")

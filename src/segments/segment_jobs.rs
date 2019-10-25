@@ -1,4 +1,4 @@
-use {Powerline, Segment, Shell};
+use crate::{Powerline, Segment, Shell};
 
 pub fn segment_jobs(p: &mut Powerline) {
     p.segments.push(match p.shell {

@@ -1,5 +1,5 @@
 #[cfg(feature = "flame")] use flame;
-use {Powerline, Segment};
+use crate::{Powerline, Segment};
 use git2::{BranchType, ObjectType, Repository, Status, StatusOptions, StatusShow};
 
 fn discover_if_none(git: &mut Option<Repository>) -> bool {

@@ -33,7 +33,7 @@ pub fn build_cli() -> App<'static, 'static> {
                 .help("The list of modules to load, separated by ','")
                 .takes_value(true)
                 .value_name("string")
-                .possible_values(::module::ALL)
+                .possible_values(crate::module::ALL)
                 .value_delimiter(",")
                 .default_value("ssh,cwd,perms,git,gitstage,nix-shell,root")
         )

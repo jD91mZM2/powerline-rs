@@ -1,7 +1,7 @@
 #[cfg(feature = "chrono")] use chrono::Local;
 #[cfg(feature = "chrono")] use chrono::prelude::*;
 #[cfg(feature = "chrono")] use std::fmt::Write;
-use {Powerline, Segment, Shell};
+use crate::{Powerline, Segment, Shell};
 
 pub fn segment_time(p: &mut Powerline) {
     let (bg, fg) = (p.theme.time_bg, p.theme.time_fg);

@@ -1,5 +1,5 @@
 use std::env;
-use {Powerline, Segment};
+use crate::{Powerline, Segment};
 
 pub fn segment_nix(p: &mut Powerline) {
     // TODO: Generalize this to any environment variable?

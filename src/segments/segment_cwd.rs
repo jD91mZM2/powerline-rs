@@ -1,4 +1,4 @@
-use {dirs, Powerline, Segment};
+use crate::{Powerline, Segment};
 use std::{
     borrow::Cow,
     env,

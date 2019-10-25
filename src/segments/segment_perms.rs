@@ -1,5 +1,5 @@
 use std::os::raw::{c_char, c_int};
-use {Powerline, Segment};
+use crate::{Powerline, Segment};
 
 const W_OK: c_int = 2;
 

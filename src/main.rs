@@ -1,9 +1,5 @@
-#[cfg(feature = "chrono")] extern crate chrono;
-#[cfg(feature = "flame")] extern crate flame;
-#[cfg(feature = "git2")] extern crate git2;
-#[cfg(feature = "users")] extern crate users;
-#[macro_use] extern crate clap;
-extern crate dirs;
+#[macro_use]
+extern crate clap;
 
 mod cli;
 mod format;
@@ -11,9 +7,9 @@ mod module;
 mod segments;
 mod theme;
 
-use module::Module;
-use segments::Segment;
-use theme::Theme;
+use crate::module::Module;
+use crate::segments::Segment;
+use crate::theme::Theme;
 
 #[derive(Clone, Copy, Eq, PartialEq)]
 pub enum Shell {

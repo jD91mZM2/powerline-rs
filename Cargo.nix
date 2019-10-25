@@ -19,12 +19,12 @@ rec {
   #
 
   rootCrate = {
-    packageId = "powerline-rs 0.1.9 (path+file:///home/user/Coding/Rust/powerline-rs)";
+    packageId = "powerline-rs 0.2.0 (path+file:///home/user/Coding/Rust/powerline-rs)";
 
     # Use this attribute to refer to the derivation building your root crate package.
     # You can override the features with rootCrate.build.override { features = [ "default" "feature1" ... ]; }.
     build = buildRustCrateWithFeatures {
-      packageId = "powerline-rs 0.1.9 (path+file:///home/user/Coding/Rust/powerline-rs)";
+      packageId = "powerline-rs 0.2.0 (path+file:///home/user/Coding/Rust/powerline-rs)";
       features = rootFeatures;
     };
   };
@@ -35,9 +35,9 @@ rec {
   # workspaceMembers."${crateName}".build.override { features = [ "default" "feature1" ... ]; }.
   workspaceMembers = {
     "powerline-rs" = {
-      packageId = "powerline-rs 0.1.9 (path+file:///home/user/Coding/Rust/powerline-rs)";
+      packageId = "powerline-rs 0.2.0 (path+file:///home/user/Coding/Rust/powerline-rs)";
       build = buildRustCrateWithFeatures {
-        packageId = "powerline-rs 0.1.9 (path+file:///home/user/Coding/Rust/powerline-rs)";
+        packageId = "powerline-rs 0.2.0 (path+file:///home/user/Coding/Rust/powerline-rs)";
         features = rootFeatures;
       };
     };
@@ -581,16 +581,6 @@ rec {
           "libc" = "libc 0.2.65 (registry+https://github.com/rust-lang/crates.io-index)";
           "libgit2-sys" = "libgit2-sys 0.9.1 (registry+https://github.com/rust-lang/crates.io-index)";
           "log" = "log 0.4.8 (registry+https://github.com/rust-lang/crates.io-index)";
-          "openssl-probe" = {
-            packageId = "openssl-probe 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)";
-            optional = true;
-            target = (target."unix" && (!(target."os" == "macos")));
-          };
-          "openssl-sys" = {
-            packageId = "openssl-sys 0.9.52 (registry+https://github.com/rust-lang/crates.io-index)";
-            optional = true;
-            target = (target."unix" && (!(target."os" == "macos")));
-          };
           "url" = "url 2.1.0 (registry+https://github.com/rust-lang/crates.io-index)";
         };
         features = {
@@ -600,7 +590,6 @@ rec {
           "ssh_key_from_memory" = [ "libgit2-sys/ssh_key_from_memory" ];
           "vendored-openssl" = [ "openssl-sys/vendored" ];
         };
-        resolvedDefaultFeatures = [ "default" "https" "openssl-probe" "openssl-sys" "ssh" "ssh_key_from_memory" ];
       };
     "idna 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)"
       = rec {
@@ -685,16 +674,7 @@ rec {
         ];
         dependencies = {
           "libc" = "libc 0.2.65 (registry+https://github.com/rust-lang/crates.io-index)";
-          "libssh2-sys" = {
-            packageId = "libssh2-sys 0.2.13 (registry+https://github.com/rust-lang/crates.io-index)";
-            optional = true;
-          };
           "libz-sys" = "libz-sys 1.0.25 (registry+https://github.com/rust-lang/crates.io-index)";
-          "openssl-sys" = {
-            packageId = "openssl-sys 0.9.52 (registry+https://github.com/rust-lang/crates.io-index)";
-            optional = true;
-            target = target."unix";
-          };
         };
         buildDependencies = {
           "cc" = {
@@ -706,39 +686,6 @@ rec {
         features = {
           "https" = [ "openssl-sys" ];
           "ssh" = [ "libssh2-sys" ];
-        };
-        resolvedDefaultFeatures = [ "https" "libssh2-sys" "openssl-sys" "ssh" "ssh_key_from_memory" ];
-      };
-    "libssh2-sys 0.2.13 (registry+https://github.com/rust-lang/crates.io-index)"
-      = rec {
-        crateName = "libssh2-sys";
-        version = "0.2.13";
-        edition = "2015";
-        sha256 = "0zvr6p6qg3a9f90cvmv94rva600v38ljj7ank9p5528ykfyygxwk";
-        libName = "libssh2_sys";
-        libPath = "lib.rs";
-        authors = [
-          "Alex Crichton <alex@alexcrichton.com>"
-          "Wez Furlong <wez@wezfurlong.org>"
-        ];
-        dependencies = {
-          "libc" = "libc 0.2.65 (registry+https://github.com/rust-lang/crates.io-index)";
-          "libz-sys" = "libz-sys 1.0.25 (registry+https://github.com/rust-lang/crates.io-index)";
-          "openssl-sys" = {
-            packageId = "openssl-sys 0.9.52 (registry+https://github.com/rust-lang/crates.io-index)";
-            target = target."unix";
-          };
-        };
-        buildDependencies = {
-          "cc" = "cc 1.0.46 (registry+https://github.com/rust-lang/crates.io-index)";
-          "pkg-config" = "pkg-config 0.3.16 (registry+https://github.com/rust-lang/crates.io-index)";
-          "vcpkg" = {
-            packageId = "vcpkg 0.2.7 (registry+https://github.com/rust-lang/crates.io-index)";
-            target = (target."env" == "msvc");
-          };
-        };
-        features = {
-          "vendored-openssl" = [ "openssl-sys/vendored" ];
         };
       };
     "libz-sys 1.0.25 (registry+https://github.com/rust-lang/crates.io-index)"
@@ -862,45 +809,6 @@ rec {
         features = {
         };
       };
-    "openssl-probe 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)"
-      = rec {
-        crateName = "openssl-probe";
-        version = "0.1.2";
-        edition = "2015";
-        sha256 = "1a89fznx26vvaxyrxdvgf6iwai5xvs6xjvpjin68fgvrslv6n15a";
-        authors = [
-          "Alex Crichton <alex@alexcrichton.com>"
-        ];
-        features = {
-        };
-      };
-    "openssl-sys 0.9.52 (registry+https://github.com/rust-lang/crates.io-index)"
-      = rec {
-        crateName = "openssl-sys";
-        version = "0.9.52";
-        edition = "2015";
-        sha256 = "1vaa2syd87d3sfiwg9s2d46sz5gfn7pdps521n859prlf80bfwgb";
-        build = "build/main.rs";
-        authors = [
-          "Alex Crichton <alex@alexcrichton.com>"
-          "Steven Fackler <sfackler@gmail.com>"
-        ];
-        dependencies = {
-          "libc" = "libc 0.2.65 (registry+https://github.com/rust-lang/crates.io-index)";
-        };
-        buildDependencies = {
-          "autocfg" = "autocfg 0.1.7 (registry+https://github.com/rust-lang/crates.io-index)";
-          "cc" = "cc 1.0.46 (registry+https://github.com/rust-lang/crates.io-index)";
-          "pkg-config" = "pkg-config 0.3.16 (registry+https://github.com/rust-lang/crates.io-index)";
-          "vcpkg" = {
-            packageId = "vcpkg 0.2.7 (registry+https://github.com/rust-lang/crates.io-index)";
-            target = (target."env" == "msvc");
-          };
-        };
-        features = {
-          "vendored" = [ "openssl-src" ];
-        };
-      };
     "percent-encoding 2.1.0 (registry+https://github.com/rust-lang/crates.io-index)"
       = rec {
         crateName = "percent-encoding";
@@ -926,11 +834,11 @@ rec {
         features = {
         };
       };
-    "powerline-rs 0.1.9 (path+file:///home/user/Coding/Rust/powerline-rs)"
+    "powerline-rs 0.2.0 (path+file:///home/user/Coding/Rust/powerline-rs)"
       = rec {
         crateName = "powerline-rs";
-        version = "0.1.9";
-        edition = "2015";
+        version = "0.2.0";
+        edition = "2018";
         src = (builtins.filterSource sourceFilter ./.);
         authors = [
           "jD91mZM2 <me@krake.one>"
@@ -945,6 +853,7 @@ rec {
           "git2" = {
             packageId = "git2 0.10.1 (registry+https://github.com/rust-lang/crates.io-index)";
             optional = true;
+            usesDefaultFeatures = false;
           };
           "users" = {
             packageId = "users 0.9.1 (registry+https://github.com/rust-lang/crates.io-index)";

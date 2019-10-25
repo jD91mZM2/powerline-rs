@@ -1,4 +1,4 @@
-use {Powerline, Segment};
+use crate::{Powerline, Segment};
 use std::{
     fmt::Write,
     fs,

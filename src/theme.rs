@@ -150,7 +150,7 @@ impl StdError for ErrCorrupt {
     fn description(&self) -> &'static str { "Corrupt theme file" }
 }
 impl fmt::Display for ErrCorrupt {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { write!(f, "{}", self.description()) }
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{}", self.description()) }
 }
 
 pub fn load(file: &str) -> Result<Theme, Box<dyn StdError>> {
