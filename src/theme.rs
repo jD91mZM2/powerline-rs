@@ -153,7 +153,7 @@ impl fmt::Display for ErrCorrupt {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { write!(f, "{}", self.description()) }
 }
 
-pub fn load(file: &str) -> Result<Theme, Box<StdError>> {
+pub fn load(file: &str) -> Result<Theme, Box<dyn StdError>> {
     let file = File::open(file)?;
     let reader = BufReader::new(file);
 
@@ -171,7 +171,7 @@ pub fn load(file: &str) -> Result<Theme, Box<StdError>> {
 
         if variable.ends_with("char") {
             let index = theme_index_char(&mut theme, variable).ok_or_else(|| ErrCorrupt)?;
-            
+
             if value.chars().count() == 1 {
                 *index = value.parse()?;
             } else {
