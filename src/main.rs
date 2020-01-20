@@ -63,9 +63,13 @@ fn main() {
     #[cfg(feature = "flame")]
     flame::start("parse modules");
 
-    let modules: Vec<_> = matches.values_of("modules").unwrap()
-                            .map(|module| module.parse().unwrap())
-                            .collect();
+    let modules: Vec<_> = matches
+        .values_of("modules")
+        .unwrap()
+        .map(|module| module.parse().unwrap())
+        .collect();
+
+    let time_format = matches.value_of("time_format").unwrap();
 
     #[cfg(feature = "flame")]
     flame::end("parse modules");
@@ -104,7 +108,7 @@ fn main() {
             Module::Ps => segments::segment_ps(&mut p),
             Module::Root => segments::segment_root(&mut p, error),
             Module::Ssh => segments::segment_ssh(&mut p),
-            Module::Time => segments::segment_time(&mut p),
+            Module::Time => segments::segment_time(&mut p, &time_format),
             Module::User => segments::segment_user(&mut p),
             Module::VirtualEnv => segments::segment_virtualenv(&mut p),
         }

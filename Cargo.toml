@@ -6,7 +6,7 @@ license-file = "LICENSE"
 name = "powerline-rs"
 readme = "README.org"
 repository = "https://github.com/jD91mZM2/powerline-rs"
-version = "0.2.0"
+version = "0.2.1"
 
 [build-dependencies]
 clap = "2.33.0"

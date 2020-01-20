@@ -1,5 +1,7 @@
 use clap::{App, Arg};
 
+pub const TIME_FORMAT_DEFAULT: &str = "%I:%M %p";
+
 pub fn build_cli() -> App<'static, 'static> {
     App::new(crate_name!())
         .about(crate_description!())
@@ -26,6 +28,15 @@ pub fn build_cli() -> App<'static, 'static> {
             Arg::with_name("error")
                 .help("Exit code of previously executed command")
                 .default_value("0")
+        )
+        .arg(
+            Arg::with_name("time_format")
+                .long("time_format")
+                .help("strftime")
+                .hidden(!cfg!(feature = "chrono"))
+                .takes_value(true)
+                .value_name("string")
+                .default_value(TIME_FORMAT_DEFAULT)
         )
         .arg(
             Arg::with_name("modules")
