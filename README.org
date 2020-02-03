@@ -130,3 +130,8 @@ system]]. This will of course eventually be resolved.
       powerline-rs --shell bare
   end
 #+END_SRC
+
+** Themes
+User contributed themes are found in contrib/
+You can define usage of a theme with argument --theme ~/.dotfiles/powerline-rs/solarized.theme
+If no theme is defined the default theme will be used.
