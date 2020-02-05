@@ -1,0 +1,57 @@
+# A port of the solarized_dark from powerline-shell
+# https://github.com/b-ryan/powerline-shell/blob/master/powerline_shell/themes/solarized_dark.py
+
+separator_fg = 14
+
+home_bg = 15
+home_fg = 10
+path_bg = 10
+path_fg = 7
+cwd_fg = 15
+
+username_bg = 4
+username_fg = 15
+username_root_bg = 1
+hostname_bg = 10
+hostname_fg = 15
+
+jobs_bg = 4
+jobs_fg = 8
+
+time_bg = 10
+time_fg = 15
+
+ssh_bg = 0
+ssh_fg = 3
+
+ro_bg = 1
+ro_fg = 7
+
+git_clean_bg = 0
+git_clean_fg = 14
+git_dirty_bg = 0
+git_dirty_fg = 3
+git_ahead_bg = 240
+git_ahead_fg = 250
+git_behind_bg = 240
+git_behind_fg = 250
+git_conflicted_bg = 9
+git_conflicted_fg = 15
+git_notstaged_bg = 130
+git_notstaged_fg = 15
+git_staged_bg = 22
+git_staged_fg = 15
+git_untracked_bg = 42
+git_untracked_fg = 15
+
+git_ahead_char = ⬆
+git_behind_char = ⬇
+git_staged_char = ✔
+git_notstaged_char = ✎
+git_untracked_char = +
+git_conflicted_char = *
+
+cmd_passed_bg = 2
+cmd_passed_fg = 15
+cmd_failed_bg = 1
+cmd_failed_fg = 15
