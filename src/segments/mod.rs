@@ -101,6 +101,7 @@ impl Segment {
         match next {
             Some(next) if next.is_conditional() => {},
             Some(next) if next.bg == self.bg => print!("{}", Fg(shell, theme.separator_fg)),
+            Some(next) if self.bg == 0 => print!("{}{}",  Fg(shell, next.bg), Bg(shell, next.bg)),
             Some(next) => print!("{}{}",  Fg(shell, self.bg), Bg(shell, next.bg)),
             // Last tile resets colors
             None       => print!("{}{}{}",Fg(shell, self.bg), Reset(shell, false), Reset(shell, true))
