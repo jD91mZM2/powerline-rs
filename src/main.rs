@@ -110,6 +110,7 @@ fn main() {
             Module::Ssh => segments::segment_ssh(&mut p),
             Module::Time => segments::segment_time(&mut p, &time_format),
             Module::User => segments::segment_user(&mut p),
+            Module::LineBreak => segments::segment_linebreak(&mut p),
             Module::VirtualEnv => segments::segment_virtualenv(&mut p),
         }
     }
