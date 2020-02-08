@@ -4,10 +4,14 @@ use std::fmt;
 pub struct Fg(pub Shell, pub u8);
 impl fmt::Display for Fg {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self.0 {
-            Shell::Bare => write!(f, "\x1b[38;5;{}m", self.1),
-            Shell::Bash => write!(f, "\\[\\e[38;5;{}m\\]", self.1),
-            Shell::Zsh  => write!(f, "%{{\x1b[38;5;{}m%}}", self.1)
+        if self.1 == 0 {
+            Reset(self.0, true).fmt(f)
+        } else {
+            match self.0 {
+                Shell::Bare => write!(f, "\x1b[38;5;{}m", self.1),
+                Shell::Bash => write!(f, "\\[\\e[38;5;{}m\\]", self.1),
+                Shell::Zsh  => write!(f, "%{{\x1b[38;5;{}m%}}", self.1)
+            }
         }
     }
 }
@@ -15,10 +19,14 @@ impl fmt::Display for Fg {
 pub struct Bg(pub Shell, pub u8);
 impl fmt::Display for Bg {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self.0 {
-            Shell::Bare => write!(f, "\x1b[48;5;{}m", self.1),
-            Shell::Bash => write!(f, "\\[\\e[48;5;{}m\\]", self.1),
-            Shell::Zsh  => write!(f, "%{{\x1b[48;5;{}m%}}", self.1)
+        if self.1 == 0 {
+            Reset(self.0, false).fmt(f)
+        } else {
+            match self.0 {
+                Shell::Bare => write!(f, "\x1b[48;5;{}m", self.1),
+                Shell::Bash => write!(f, "\\[\\e[48;5;{}m\\]", self.1),
+                Shell::Zsh  => write!(f, "%{{\x1b[48;5;{}m%}}", self.1)
+            }
         }
     }
 }
