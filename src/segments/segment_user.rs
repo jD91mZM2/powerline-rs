@@ -5,12 +5,14 @@ pub fn segment_user(p: &mut Powerline) {
     let (bg, fg) = (p.theme.username_bg, p.theme.username_fg);
     #[cfg(feature = "users")]
     let mut bg = bg;
+    let mut fg = fg;
 
     #[cfg(feature = "users")]
     let uid = users::get_current_uid();
     #[cfg(feature = "users")]
     { if uid == 0 {
         bg = p.theme.username_root_bg;
+        fg = p.theme.username_root_fg;
     } }
 
     p.segments.push(match p.shell {

@@ -11,6 +11,7 @@ pub struct Theme {
     pub username_bg: u8,
     pub username_fg: u8,
     pub username_root_bg: u8,
+    pub username_root_fg: u8,
     pub hostname_bg: u8,
     pub hostname_fg: u8,
 
@@ -81,6 +82,7 @@ pub const DEFAULT: Theme = Theme {
     username_bg: 240,
     username_fg: 250,
     username_root_bg: 124,
+    username_root_fg: 15,
     hostname_bg: 238,
     hostname_fg: 250,
 
@@ -200,6 +202,7 @@ fn theme_index_u8<'a>(theme: &'a mut Theme, name: &str) -> Option<&'a mut u8> {
         "username_bg" => Some(&mut theme.username_bg),
         "username_fg" => Some(&mut theme.username_fg),
         "username_root_bg" => Some(&mut theme.username_root_bg),
+        "username_root_fg" => Some(&mut theme.username_root_fg),
         "hostname_bg" => Some(&mut theme.hostname_bg),
         "hostname_fg" => Some(&mut theme.hostname_fg),
 
