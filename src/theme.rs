@@ -252,6 +252,9 @@ fn theme_index_u8<'a>(theme: &'a mut Theme, name: &str) -> Option<&'a mut u8> {
 
 fn theme_index_char<'a>(theme: &'a mut Theme, name: &str) -> Option<&'a mut char> {
     match name {
+        "ssh_char" => Some(&mut theme.ssh_char),
+        "ro_char" => Some(&mut theme.ro_char),
+
         "git_ahead_char" => Some(&mut theme.git_ahead_char),
         "git_behind_char" => Some(&mut theme.git_behind_char),
         "git_staged_char" => Some(&mut theme.git_staged_char),
