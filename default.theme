@@ -1,10 +1,10 @@
 # Default theme
-# Note: Missing values default to the default.
-# That means this might as well be an empty file.
-# Note 2: This file isn't used. In order to speed things up,
-# the defaults are hardcoded.
-# Note 3: Empty lines are ignored. So are lines starting with '#',
-# (like these ones).
+# Note: Missing values default to the default. That means this might as well be
+# an empty file.
+# Note 2: This file isn't used. In order to speed things up, the defaults are
+# hardcoded.
+# Note 3: Empty lines are ignored. So are lines starting with '#', (like these
+# ones).
 
 separator_fg = 244
 
@@ -29,8 +29,12 @@ time_fg = 250
 ssh_bg = 166
 ssh_fg = 254
 
+ssh_char = 
+
 ro_bg = 124
 ro_fg = 254
+
+ro_char = 
 
 git_clean_bg = 148
 git_clean_fg = 0
@@ -48,6 +52,13 @@ git_staged_bg = 22
 git_staged_fg = 15
 git_untracked_bg = 52
 git_untracked_fg = 15
+
+git_ahead_char = ⬆
+git_behind_char = ⬇
+git_staged_char = ✔
+git_notstaged_char = ✎
+git_untracked_char = +
+git_conflicted_char = *
 
 cmd_passed_bg = 236
 cmd_passed_fg = 15

@@ -148,11 +148,11 @@ use std::io::{BufRead, BufReader};
 #[derive(Debug)]
 pub struct ErrCorrupt;
 
-impl StdError for ErrCorrupt {
-    fn description(&self) -> &'static str { "Corrupt theme file" }
-}
+impl StdError for ErrCorrupt {}
 impl fmt::Display for ErrCorrupt {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{}", self.description()) }
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Corrupt theme file")
+    }
 }
 
 pub fn load(file: &str) -> Result<Theme, Box<dyn StdError>> {
