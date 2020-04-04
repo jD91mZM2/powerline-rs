@@ -1,0 +1,51 @@
+# Gruvbox theme
+# ported from powerline-shell grubox theme
+# https://github.com/b-ryan/powerline-shell/blob/master/powerline_shell/themes/gruvbox.py
+
+separator_fg = 245
+
+home_bg = 66
+home_fg = 250
+path_bg = 241
+path_fg = 248
+cwd_fg = 250
+
+username_bg = 239
+username_fg = 175
+username_root_bg = 88
+hostname_bg = 237
+hostname_fg = 175
+
+jobs_bg = 72
+jobs_fg = 237
+
+time_bg = 243
+time_fg = 250
+
+ssh_bg = 96
+ssh_fg = 229
+
+ro_bg = 167
+ro_fg = 229
+
+git_clean_bg = 100
+git_clean_fg = 237
+git_dirty_bg = 130
+git_dirty_fg = 229
+git_ahead_bg = 239
+git_ahead_fg = 248
+git_behind_bg = 239
+git_behind_fg = 248
+git_staged_bg = 106
+git_staged_fg = 229
+git_notstaged_bg = 166
+git_notstaged_fg = 229
+git_untracked_bg = 88
+git_untracked_fg = 229
+git_conflicted_bg = 124
+git_conflicted_fg = 229
+
+cmd_passed_bg = 237
+cmd_passed_fg = 246
+cmd_failed_bg = 124
+cmd_failed_fg = 229
