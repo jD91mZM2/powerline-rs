@@ -14,6 +14,7 @@ pub const ALL: &[&str] = &[
     "time",
     "user",
     "virtualenv",
+    "linebreak",
 ];
 
 #[derive(PartialEq, Eq)]
@@ -31,6 +32,7 @@ pub enum Module {
     Time,
     User,
     VirtualEnv,
+    LineBreak,
 }
 
 impl FromStr for Module {
@@ -50,6 +52,7 @@ impl FromStr for Module {
             "time"       => Ok(Module::Time),
             "user"       => Ok(Module::User),
             "virtualenv" => Ok(Module::VirtualEnv),
+            "linebreak"  => Ok(Module::LineBreak),
             _          => Err(())
         }
     }

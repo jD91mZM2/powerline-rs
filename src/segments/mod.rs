@@ -9,6 +9,7 @@ pub mod segment_ssh;
 pub mod segment_time;
 pub mod segment_user;
 pub mod segment_virtualenv;
+pub mod segment_linebreak;
 
 pub use self::segment_cwd::*;
 pub use self::segment_host::*;
@@ -21,6 +22,7 @@ pub use self::segment_ssh::*;
 pub use self::segment_time::*;
 pub use self::segment_user::*;
 pub use self::segment_virtualenv::*;
+pub use self::segment_linebreak::*;
 
 #[cfg(feature = "git2")] pub mod segment_git;
 #[cfg(feature = "git2")] pub use self::segment_git::*;
@@ -38,6 +40,7 @@ pub struct Segment {
     before: &'static str,
     after: &'static str,
     conditional: bool,
+    no_space_after: bool,
 
     escaped: bool,
     text: Cow<'static, str>
@@ -53,6 +56,7 @@ impl Segment {
             before: "",
             after: "",
             conditional: false,
+            no_space_after: false,
 
             escaped: false,
             text:  text.into()
@@ -77,6 +81,10 @@ impl Segment {
     pub fn is_conditional(&self) -> bool {
         self.conditional
     }
+    pub fn with_no_space_after(mut self) -> Self {
+        self.no_space_after = true;
+        self
+    }
     pub fn escape(&mut self, shell: Shell) {
         if self.escaped {
             return;
@@ -85,10 +93,15 @@ impl Segment {
         self.escaped = true;
     }
     pub fn print(&self, next: Option<&Segment>, shell: Shell, theme: &Theme) {
-        print!("{}{}{} {} ", self.before, Fg(shell, self.fg), Bg(shell, self.bg), self.text);
+        print!("{}{}{} {}", self.before, Fg(shell, self.fg), Bg(shell, self.bg), self.text);
+
+        if !self.no_space_after {
+            print!(" ")
+        }
         match next {
             Some(next) if next.is_conditional() => {},
             Some(next) if next.bg == self.bg => print!("{}", Fg(shell, theme.separator_fg)),
+            Some(next) if self.bg == 0 => print!("{}{}",  Fg(shell, next.bg), Bg(shell, next.bg)),
             Some(next) => print!("{}{}",  Fg(shell, self.bg), Bg(shell, next.bg)),
             // Last tile resets colors
             None       => print!("{}{}{}",Fg(shell, self.bg), Reset(shell, false), Reset(shell, true))
