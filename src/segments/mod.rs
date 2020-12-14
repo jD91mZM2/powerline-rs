@@ -92,15 +92,33 @@ impl Segment {
         escape(shell, self.text.to_mut());
         self.escaped = true;
     }
-    pub fn print(&self, previous: Option<&Segment>, shell: Shell, theme: &Theme) {
+    pub fn print(&self, next: Option<&Segment>, shell: Shell, theme: &Theme) {
+        print!("{}{}{} {}", self.before, Fg(shell, self.fg), Bg(shell, self.bg), self.text);
+
+        if !self.no_space_after {
+            print!(" ")
+        }
+        match next {
+            Some(next) if next.is_conditional() => {},
+            Some(next) if next.bg == self.bg => print!("{}", Fg(shell, theme.separator_fg)),
+            Some(next) if self.bg == 0 => print!("{}{}",  Fg(shell, next.bg), Bg(shell, next.bg)),
+            Some(next) => print!("{}{}",  Fg(shell, self.bg), Bg(shell, next.bg)),
+            // Last tile resets colors
+            None       => print!("{}{}{}",Fg(shell, self.bg), Reset(shell, false), Reset(shell, true))
+        }
         print!("{}", self.after);
-        match previous {
-            Some(previous) if previous.is_conditional() => {},
-            Some(previous) if previous.bg == self.bg => print!("{}", Fg(shell, theme.separator_fg)),
-            Some(previous) => print!("{}{}",  Fg(shell, self.bg), Bg(shell, previous.bg)),
+    }
+    pub fn print_rtl(&self, next: Option<&Segment>, shell: Shell, theme: &Theme) {
+        // Here, next is going leftwards - see how this func is called in main.rs .
+        print!("{}", self.after);
+        match next {
+            Some(next) if next.is_conditional() => {},
+            Some(next) if next.bg == self.bg => print!("{}", Fg(shell, theme.separator_fg)),
+            Some(next) => print!("{}{}",  Fg(shell, self.bg), Bg(shell, next.bg)),
             None       => print!("{}", Fg(shell, self.bg))
         }
         print!("{}{} {}", Fg(shell, self.fg), Bg(shell, self.bg), self.text);
+
         if !self.no_space_after {
             print!(" ")
         }
