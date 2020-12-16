@@ -127,9 +127,11 @@ fn main() {
             p.segments[n-i].print_rtl(p.segments.get(n-i+1), p.shell, &p.theme);
         }
     } else {
-        for i in 0..p.segments.len() {
-            p.segments[i].escape(p.shell);
-            p.segments[i].print(p.segments.get(i+1), p.shell, &p.theme);
+        for sublist in p.segments.windows(2) {
+            if let &[ref current, ref next] = sublist {
+                //current.escape(p.shell);
+                current.print(Some(next), p.shell, &p.theme);
+            }
         }
     }
 
