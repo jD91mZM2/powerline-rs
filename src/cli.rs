@@ -69,4 +69,9 @@ pub fn build_cli() -> App<'static, 'static> {
                 .takes_value(true)
                 .value_name("file")
         )
+        .arg(
+            Arg::with_name("rtl")
+                .long("rtl")
+                .help("Print everything from right to left")
+            )
 }

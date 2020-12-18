@@ -120,14 +120,22 @@ fn main() {
     #[cfg(feature = "flame")]
     flame::start("print");
 
-    for i in 0..p.segments.len() {
-        p.segments[i].escape(p.shell);
-        p.segments[i].print(p.segments.get(i+1), p.shell, &p.theme);
+    if matches.is_present("rtl") {
+        let n = p.segments.len();
+        for i in 1..n+1 {
+            p.segments[n-i].escape(p.shell);
+            p.segments[n-i].print_rtl(p.segments.get(n-i+1), p.shell, &p.theme);
+        }
+    } else {
+        for i in 0..p.segments.len() {
+            p.segments[i].escape(p.shell);
+            p.segments[i].print(p.segments.get(i+1), p.shell, &p.theme);
+        }
     }
 
     if matches.is_present("newline") {
         println!();
-    } else {
+    } else if !matches.is_present("rtl") {
         print!(" ");
     }
 

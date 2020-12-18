@@ -108,4 +108,20 @@ impl Segment {
         }
         print!("{}", self.after);
     }
+    pub fn print_rtl(&self, next: Option<&Segment>, shell: Shell, theme: &Theme) {
+        // Here, next is going leftwards - see how this func is called in main.rs .
+        print!("{}", self.after);
+        match next {
+            Some(next) if next.is_conditional() => {},
+            Some(next) if next.bg == self.bg => print!("{}", Fg(shell, theme.separator_fg)),
+            Some(next) => print!("{}{}",  Fg(shell, self.bg), Bg(shell, next.bg)),
+            None       => print!("{}", Fg(shell, self.bg))
+        }
+        print!("{}{} {}", Fg(shell, self.fg), Bg(shell, self.bg), self.text);
+
+        if !self.no_space_after {
+            print!(" ")
+        }
+        print!("{}{}{}", Reset(shell, false), Reset(shell, true), self.before);
+    }
 }
