@@ -113,7 +113,8 @@ impl Segment {
         print!("{}", self.after);
         match next {
             Some(next) if next.is_conditional() => {},
-            Some(next) if next.bg == self.bg => print!("{}", Fg(shell, theme.separator_fg)),
+            Some(next) if next.bg == self.bg =>
+                print!("{}{}", Fg(shell, theme.separator_fg), Bg(shell, self.bg)),
             Some(next) => print!("{}{}",  Fg(shell, self.bg), Bg(shell, next.bg)),
             None       => print!("{}", Fg(shell, self.bg))
         }
