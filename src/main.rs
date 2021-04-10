@@ -43,6 +43,7 @@ fn main() {
 
     let cwd_max_depth    = value_t_or_exit!(matches, "cwd-max-depth", u8);
     let cwd_max_dir_size = value_t_or_exit!(matches, "cwd-max-dir-size", u8);
+    let cwd_no_ellipsis  = matches.is_present("cwd-no-ellipsis");
     let error            = value_t_or_exit!(matches, "error", u8);
 
     #[cfg(feature = "flame")]
@@ -98,7 +99,7 @@ fn main() {
 
     for module in modules {
         match module {
-            Module::Cwd => segments::segment_cwd(&mut p, cwd_max_depth, cwd_max_dir_size),
+            Module::Cwd => segments::segment_cwd(&mut p, cwd_max_depth, cwd_max_dir_size, cwd_no_ellipsis),
             Module::Git => { #[cfg(feature = "git2")] segments::segment_git(&mut p) },
             Module::GitStage => { #[cfg(feature = "git2")] segments::segment_gitstage(&mut p) },
             Module::Host => segments::segment_host(&mut p),
