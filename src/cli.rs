@@ -25,6 +25,12 @@ pub fn build_cli() -> App<'static, 'static> {
                 .default_value("15")
         )
         .arg(
+            Arg::with_name("cwd-no-ellipsis")
+                .long("cwd-no-ellipsis")
+                .help("Disable ellipsis when path component is too long.")
+                .takes_value(false)
+        )
+        .arg(
             Arg::with_name("error")
                 .help("Exit code of previously executed command")
                 .default_value("0")

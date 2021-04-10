@@ -6,7 +6,7 @@ use std::{
     path::PathBuf
 };
 
-pub fn segment_cwd(p: &mut Powerline, cwd_max_depth: u8, cwd_max_dir_size: u8) {
+pub fn segment_cwd(p: &mut Powerline, cwd_max_depth: u8, cwd_max_dir_size: u8, cwd_no_ellipsis: bool) {
     let mut path = env::current_dir().unwrap_or_else(|_| PathBuf::from("error"));
     if let Some(home) = dirs::home_dir() {
         let mut new_path = None;
@@ -28,7 +28,7 @@ pub fn segment_cwd(p: &mut Powerline, cwd_max_depth: u8, cwd_max_dir_size: u8) {
     if cwd_max_depth != 1 {
         if let Some(dir) = dirs.next() {
             // Either there's no cwd_max_depth, or it's bigger than 1
-            segment(p, dir, length == 1, cwd_max_dir_size);
+            segment(p, dir, length == 1, cwd_max_dir_size, cwd_no_ellipsis);
 
             // It would be sane here to subtract 1 from both length and
             // cwd_max_depth, to make it clear that we already tried one and
@@ -48,10 +48,10 @@ pub fn segment_cwd(p: &mut Powerline, cwd_max_depth: u8, cwd_max_dir_size: u8) {
     while let Some(cursor) = next {
         next = dirs.next();
 
-        segment(p, cursor, next.is_none(), cwd_max_dir_size);
+        segment(p, cursor, next.is_none(), cwd_max_dir_size, cwd_no_ellipsis);
     }
 }
-pub fn segment(p: &mut Powerline, name: &OsStr, last: bool, cwd_max_dir_size: u8) {
+pub fn segment(p: &mut Powerline, name: &OsStr, last: bool, cwd_max_dir_size: u8, cwd_no_ellipsis: bool) {
     let mut name = name.to_string_lossy().into_owned();
 
     let cwd_max_dir_size = cwd_max_dir_size as usize;
@@ -61,7 +61,9 @@ pub fn segment(p: &mut Powerline, name: &OsStr, last: bool, cwd_max_dir_size: u8
             start += c.len_utf8();
         }
         name.drain(start..);
-        name.push('…');
+        if !cwd_no_ellipsis {
+            name.push('…');
+        }
     }
 
     let fg = if last { p.theme.cwd_fg } else { p.theme.path_fg };
