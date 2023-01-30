@@ -4,7 +4,7 @@ use std::fmt;
 pub struct Fg(pub Shell, pub u8);
 impl fmt::Display for Fg {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if self.1 == 0 {
+        if self.1 == 7 {
             Reset(self.0, true).fmt(f)
         } else {
             match self.0 {
